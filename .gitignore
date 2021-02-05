@@ -12,3 +12,7 @@ beerun
 lastupdate.tmp
 
 qting-ai
+
+web/node_modules/
+
+web/dist/
