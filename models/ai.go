@@ -34,7 +34,7 @@ const (
 
 type AiTrain struct {
 	AiFrameworkId       int       `json:"aiFrameworkId"`
-	ProjectId           int    `yaml:"projectId"` // 训练中心使用 项目名
+	ProjectId           int       `yaml:"projectId"` // 训练中心使用 项目名
 	Taskid              string    `json:"taskId"`
 	Taskname            string    `json:"taskName"`
 	Projectname         string    `json:"projectName"`
@@ -61,6 +61,9 @@ type AiTrain struct {
 	Recalldatum         int       `json:"recalldatum"`
 	Otherlabeltraintype int       `json:"otherlabeltraintype"`
 	Mergetrainsymbol    int       `json:"mergeTrainSymbol"`
+	Learnrate           float32   `json:"learnrate"`
+	Otherlabelstride    int       `json:"otherlabelstride"`
+	Isshuffle           bool      `json:"isshuffle"`
 }
 
 type QTingTiny3L struct {
@@ -209,6 +212,10 @@ func DoTrain(m *AiTrain) (err error) {
 			temp.ProjectName = m.Projectname
 			temp.TaskId = m.Taskid
 			temp.ProviderType = m.Providertype
+
+			temp.Isshuffle = m.Isshuffle
+			temp.Otherlabelstride = m.Otherlabelstride
+			temp.Learnrate = m.Learnrate
 
 			data, _ := yaml.Marshal(temp)
 			Publish(string(data))

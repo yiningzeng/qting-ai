@@ -36,8 +36,8 @@ random: 1
 recall_suggest_pro: []
 recalldatum: 2
 resizearrange:
-  - 0.3
-  - 1.6
+  - 0.4
+  - 1.2
 rmgeneratedata: 0 # 0是删除 1：不删   是否删除训练生成的临时数据
 scale: 1
 singletrain:
@@ -51,6 +51,6 @@ taskId: ''
 traintype: 0
 trainwithnolabelpic: 1000
 triantype: 0
-learnrate:  0.26
-otherlabelstride: 1
-isshuffle: true
+learnrate:  0.00261 # 学习率
+otherlabelstride: 1 # 负样本平移增强步长
+isshuffle: true # 是否打乱数据

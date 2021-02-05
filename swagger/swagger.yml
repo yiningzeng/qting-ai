@@ -1004,10 +1004,18 @@ definitions:
       imageWidth:
         type: integer
         format: int64
+      isshuffle:
+        type: boolean
+      learnrate:
+        type: number
+        format: float
       maxIter:
         type: integer
         format: int64
       mergeTrainSymbol:
+        type: integer
+        format: int64
+      otherlabelstride:
         type: integer
         format: int64
       otherlabeltraintype:
