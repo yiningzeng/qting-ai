@@ -1,0 +1,56 @@
+acc_suggest_pro: []
+anchortype: 2
+angle: 360
+batchsize: 64
+cell_stride: 1 # 正样本平移步长
+cellsize: 16
+expand_size:
+  - 8
+  - 8
+f1_suggest_pro:
+  - 0
+gpus: 0,1
+ignore_size:
+  - 6
+  - 6
+image: registry.cn-hangzhou.aliyuncs.com/qtingvision/auto-train-tiny:latest
+imagesize:
+  - -1
+  - -1
+labelsfilename: ''
+lablelist: []
+maxiter: -1
+mergeTrainSymbol: 0 # 是否开启多标签单模型训练 0 关闭 1 开启
+modeldcfgname: QTing-tiny-3l.cfg
+modelname: '20210128183824'
+otherlabeltraintype: 1  # 0不开启 1开启， 可能存在其他类型 非当前标签图片训练方式
+path_prefix: data/images/
+pixelareafpthresh:
+  - 1.52e-05
+  - 1.52e-07
+pretraincfgname: ''
+pretrainweight: ''
+projectName: "\u524D\u9053"
+providerType: QTing-tiny-3l-single
+random: 1
+recall_suggest_pro: []
+recalldatum: 2
+resizearrange:
+  - 0.4
+  - 1.2
+rmgeneratedata: 0 # 0是删除 1：不删   是否删除训练生成的临时数据
+scale: 1
+singletrain:
+  - luhou-zhanxi
+  - xiqiu
+  - heidian
+split_ratio: 0.95
+subdivisionssize: 1
+sum_suggest_pro: []
+taskId: ''
+traintype: 0
+trainwithnolabelpic: 1000
+triantype: 0
+learnrate:  0.00261 # 学习率
+otherlabelstride: 1 # 负样本平移增强步长
+isshuffle: true # 是否打乱数据
