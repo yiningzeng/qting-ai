@@ -126,19 +126,23 @@ class FreeFish extends React.Component {
                 singleTrain: [], // 单类训练名称 ‘’则全类训练，不为空则训练输入的单类，确保单类名在标记标签中
 
                 angle: 360,
-                cell_stride: 1, //平移步长
+                cell_stride: 1, //正平移步长
                 cellsize: 16, //平移框大小
-                expand_size: [8,8], //扩展尺寸
-                ignore_size: [6,6],//忽略尺寸
+                expand_size: [8, 8], //扩展尺寸
+                ignore_size: [6, 6],//忽略尺寸
                 resizearrange: [0.4, 1.2], // anchor  调整变化幅度
                 trainwithnolabelpic: 1000, //最大负样本数
 
-                subdivisionssize: 16,
+                subdivisionssize: 2,
                 rmgeneratedata: 0, // 是否保留训练生成的临时数据
                 split_ratio: 0.95, // 训练样本占比
                 recalldatum: 2, // 检出率基准
                 otherlabeltraintype: 1, // 非当前标签图片训练方式
                 mergeTrainSymbol: 0, // 是否合并多标签训练
+
+                learnrate: 0.00261, // 学习率
+                otherlabelstride: 1, // 负样本平移增强步长
+                isshuffle: true, // 是否打乱数据
             },
         },
         suggestScore: {
@@ -1289,6 +1293,25 @@ class FreeFish extends React.Component {
                                 }}/>
                         {
                             this.state.train.showAiPar && <div>
+                                学习率:
+                                <InputNumber style={{width: '100%'}}
+                                             placeholder={this.state.train.doTrain.learnrate}
+                                             precision={6}
+                                             step={0.00001}
+                                             min={0}
+                                             onChange={(value) => {
+                                                 if (value === "" || value === null || value === undefined) value = 0.00261;
+                                                 this.setState({
+                                                     ...this.state,
+                                                     train: {
+                                                         ...this.state.train,
+                                                         doTrain: {
+                                                             ...this.state.train.doTrain,
+                                                             learnrate: value,
+                                                         },
+                                                     }
+                                                 })
+                                             }}/>
                                 检出率基数:
                                 <InputNumber style={{width: '100%'}}
                                              placeholder={this.state.train.doTrain.recalldatum}
@@ -1477,7 +1500,7 @@ class FreeFish extends React.Component {
                                                      }
                                                  })
                                              }}/>
-                                平移步长:
+                                正样本平移增强步长:
                                 <InputNumber style={{width: '100%'}}
                                              placeholder={this.state.train.doTrain.cell_stride}
                                              precision={0}
@@ -1492,6 +1515,25 @@ class FreeFish extends React.Component {
                                                          doTrain: {
                                                              ...this.state.train.doTrain,
                                                              cell_stride: value,
+                                                         },
+                                                     }
+                                                 })
+                                             }}/>
+                                负样本平移增强步长:
+                                <InputNumber style={{width: '100%'}}
+                                             placeholder={this.state.train.doTrain.otherlabelstride}
+                                             precision={0}
+                                             step={1}
+                                             min={0}
+                                             onChange={(value) => {
+                                                 if (value === "" || value === null || value === undefined) value = 1;
+                                                 this.setState({
+                                                     ...this.state,
+                                                     train: {
+                                                         ...this.state.train,
+                                                         doTrain: {
+                                                             ...this.state.train.doTrain,
+                                                             otherlabelstride: value,
                                                          },
                                                      }
                                                  })
@@ -1721,6 +1763,20 @@ class FreeFish extends React.Component {
                                             doTrain: {
                                                 ...this.state.train.doTrain,
                                                 rmgeneratedata: v ? 1 : 0,
+                                            },
+                                        }
+                                    });
+                                }} />
+                                <br/>
+                                是否打乱数据:&nbsp;&nbsp;
+                                <Switch checkedChildren="打乱" unCheckedChildren="不打乱" defaultChecked={false} onChange={(v) => {
+                                    this.setState({
+                                        ...this.state,
+                                        train: {
+                                            ...this.state.train,
+                                            doTrain: {
+                                                ...this.state.train.doTrain,
+                                                isshuffle: v,
                                             },
                                         }
                                     });
