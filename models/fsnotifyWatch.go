@@ -26,7 +26,7 @@ func WatchDir(dir string) (err error) {
 	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		//这里判断是否为目录，只需监控目录即可
 		//目录下的文件也在监控范围内，不需要我们一个一个加
-		if info.IsDir() && strings.Contains(path, "backup") {
+		if info.IsDir() && !strings.Contains(path, "training_data") && !strings.Contains(path, "Data") {
 			path, err := filepath.Abs(path)
 			if err != nil {
 				logrus.Error(err)
@@ -49,12 +49,14 @@ func WatchDir(dir string) (err error) {
 					return
 				}
 				if ev.Op&fsnotify.Write == fsnotify.Write || ev.Op&fsnotify.Create == fsnotify.Create{
-					logrus.WithField("filename", ev.Name).Debug("Create || Write")
+					logrus.WithField("filename", ev.Name).Info("Create || Write")
 					//获取新创建文件的信息，如果是目录，则加入监控中
 					if file, err := os.Stat(ev.Name); err == nil {
 						if file.IsDir() {
-							_ = watcher.Add(ev.Name)
-							logrus.WithField("filename", ev.Name).Debug("Add Watch")
+							if !strings.Contains(ev.Name, "training_data") && !strings.Contains(file.Name(), "Data") {
+								_ = watcher.Add(ev.Name)
+								logrus.WithField("filename", ev.Name).Info("Add Watch")
+							}
 						} else if strings.Contains(file.Name(), ".weights") {
 							//好了，这里就需要开始
 							taskId := strings.ReplaceAll(file.Name(), ".weights", "") // 这是任务标识
@@ -67,22 +69,26 @@ func WatchDir(dir string) (err error) {
 							err = watchAddSuggest(taskId, ev.Name)
 						}
 					}
+
+					if err != nil {
+						logrus.WithField("fsnotify", "Create || Write").Error(err)
+					}
 				} else if ev.Op&fsnotify.Remove == fsnotify.Remove {
-					logrus.WithField("filename", ev.Name).Debug("Remove Watch")
+					//logrus.WithField("filename", ev.Name).Info("Remove Watch")
 					//如果删除文件是目录，则移除监控
 					fi, err := os.Stat(ev.Name)
 					if err == nil && fi.IsDir() && strings.Contains(ev.Name, "backup") {
 						_ = watcher.Remove(ev.Name)
-						logrus.WithField("filename", ev.Name).Debug("Remove Watch")
+						logrus.WithField("filename", ev.Name).Info("Remove Watch")
 					}
 				} else if ev.Op&fsnotify.Rename == fsnotify.Rename {
 					//如果重命名文件是目录，则移除监控 ,注意这里无法使用os.Stat来判断是否是目录了
 					//因为重命名后，go已经无法找到原文件来获取信息了,所以简单粗爆直接remove
-					logrus.WithField("filename", ev.Name).Debug("Rename")
+					//logrus.WithField("filename", ev.Name).Info("Rename")
 					fi, err := os.Stat(ev.Name)
 					if err == nil && fi.IsDir() && strings.Contains(ev.Name, "backup") {
 						_ = watcher.Remove(ev.Name)
-						logrus.WithField("filename", ev.Name).Debug("Remove Watch")
+						logrus.WithField("filename", ev.Name).Info("Remove Watch")
 					}
 				}
 			case err, ok := <-watcher.Errors:
