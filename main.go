@@ -46,20 +46,6 @@ func LoggerInit(debug bool) {
 func main() {
 	LoggerInit(beego.AppConfig.DefaultBool("debug", false))
 	go models.WatchDir(beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/"))
-	//err := tools.AddWatchDir("/qtingvisionfolder/Projects/string")
-	//if err != nil {
-	//	logrus.Error(err)
-	//}
-	//cmd = exec.Command("bash", "-c", "sudo docker ps |grep mariadb")
-	//output, err = cmd.CombinedOutput()
-	//if err != nil {
-	//	logrus.WithFields(logrus.Fields{
-	//		"cmd": cmd,
-	//		"output": string(output),
-	//	}).Error("正在训练 > 执行查询容器shell出错")
-	//}
-	//logrus.Debug(string(output))
-
 	go models.StartCron()
 
 	sqlConn, er := beego.AppConfig.String("sqlconn")
