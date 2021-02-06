@@ -1,4 +1,4 @@
-// @APIVersion 1.0.0
+// @APIVersion 3.1.3
 // @Title 训练中心
 // @Description 自训练中心后台接口
 // @Contact yiningzeng@outlook.com

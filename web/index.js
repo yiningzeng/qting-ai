@@ -111,11 +111,10 @@ class FreeFish extends React.Component {
                 aiFrameworkId: undefined, // 框架id
                 taskId: undefined, // 项目id
                 taskName: undefined, // 训练任务名称
-                projectName: undefined, // 项目名称
                 projectId: undefined, // 项目id
-                assetsDir: undefined, // 素材文件夹，和packageDir相同
                 assetsType: "powerAi", // 素材的类型，pascalVoc和coco和other
                 providerType: "QTing-tiny-3l-single", // 框架的类型yolov3
+
                 batchSize: 64,
                 imageWidth: -1,
                 imageHeight: -1,
@@ -650,7 +649,6 @@ class FreeFish extends React.Component {
                                             doTrain: {
                                                 ...this.state.train.doTrain,
                                                 projectId: aa.Data.length > 0 ?  aa.Data[0].Id : undefined,
-                                                projectName: aa.Data.length > 0 ? aa.Data[0].ProjectName : undefined,
                                                 taskId: `${moment().format('YYYYMMDDHHmmss')}`
                                             }
                                         }
@@ -1146,43 +1144,46 @@ class FreeFish extends React.Component {
                         所属项目:
                         <Select style={{marginTop: "5px", marginBottom: "10px", width: "100%"}}
                                 defaultValue={this.props.service.Projects.Data === undefined ? "" : this.props.service.Projects.Data.length > 0 ? this.props.service.Projects.Data[0].ProjectName : ""}
-                                onChange={(value) => this.setState({
-                                    train: {
-                                        ...this.state.train,
-                                        doTrain: {
-                                            ...this.state.train.doTrain,
-                                            projectId: Number(value),
+                                onChange={(value) => {
+                                    console.error(Number(value));
+                                    this.setState({
+                                        train: {
+                                            ...this.state.train,
+                                            doTrain: {
+                                                ...this.state.train.doTrain,
+                                                projectId: Number(value),
+                                            }
                                         }
-                                    }
-                                }, () => {
+                                    }, () => {
 
-                                    const {dispatch} = this.props;
-                                    dispatch({
-                                        type: 'service/getLabels_v1',
-                                        payload: {
-                                            query: encodeURI(`ProjectId:${this.state.train.doTrain.projectId}`),
-                                            limit: 1000,
-                                        },
-                                        callback: (bb) => {
-                                            const singleTrain = [];
-                                            if (bb.Data !== null) {
-                                                bb.Data.map(v => {
-                                                    singleTrain.push(v.LabelName);
+                                        const {dispatch} = this.props;
+                                        dispatch({
+                                            type: 'service/getLabels_v1',
+                                            payload: {
+                                                query: encodeURI(`ProjectId:${this.state.train.doTrain.projectId}`),
+                                                limit: 1000,
+                                            },
+                                            callback: (bb) => {
+                                                const singleTrain = [];
+                                                if (bb.Data !== null) {
+                                                    bb.Data.map(v => {
+                                                        singleTrain.push(v.LabelName);
+                                                    });
+                                                }
+                                                this.setState({
+                                                    ...this.state,
+                                                    train: {
+                                                        ...this.state.train,
+                                                        doTrain: {
+                                                            ...this.state.train.doTrain,
+                                                            singleTrain: singleTrain,
+                                                        }
+                                                    }
                                                 });
                                             }
-                                            this.setState({
-                                                ...this.state,
-                                                train: {
-                                                    ...this.state.train,
-                                                    doTrain: {
-                                                        ...this.state.train.doTrain,
-                                                        singleTrain: singleTrain,
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    });
-                                })}>
+                                        });
+                                    })
+                                }}>
                             {
                                 // 这里循环
                                 this.props.service.Projects.Data.map(d => (
@@ -1275,14 +1276,6 @@ class FreeFish extends React.Component {
                         AI参数(选填)-专业人员操作:&nbsp;&nbsp;
                         <Switch checkedChildren="已打开调参" unCheckedChildren="已关闭调参"
                                 onChange={(c) => {
-                                    // const {dispatch} = this.props;
-                                    // dispatch({
-                                    //     type: 'service/getModelListV2',
-                                    //     payload: {
-                                    //         framework_type: this.state.train.doTrain.providerType,
-                                    //         project_name: encodeURI(this.state.train.doTrain.projectName)
-                                    //     },
-                                    // });
                                     this.setState({
                                         ...this.state,
                                         train: {
@@ -1769,7 +1762,7 @@ class FreeFish extends React.Component {
                                 }} />
                                 <br/>
                                 是否打乱数据:&nbsp;&nbsp;
-                                <Switch checkedChildren="打乱" unCheckedChildren="不打乱" defaultChecked={false} onChange={(v) => {
+                                <Switch checkedChildren="打乱" unCheckedChildren="不打乱" defaultChecked={true} onChange={(v) => {
                                     this.setState({
                                         ...this.state,
                                         train: {
@@ -1833,7 +1826,7 @@ class FreeFish extends React.Component {
                             <Button type="primary"
                                     loading={this.state.train.loading}
                                     onClick={() => {
-                                        if (!this.state.train.doTrain.projectName) {
+                                        if (!this.state.train.doTrain.projectId) {
                                             notification.error({
                                                 message: "不存在项目",
                                                 description: "当前未找到相关的项目，请返回首页新建项目再进行训练任务",

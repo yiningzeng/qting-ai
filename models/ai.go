@@ -67,7 +67,7 @@ type AiTrain struct {
 }
 
 type QTingTiny3L struct {
-	ProjectId string `yaml:"projectId"` // 训练中心使用 项目名
+	ProjectId  int `yaml:"projectId"` // 训练中心使用 项目名
 	ProjectName string `yaml:"projectName"` // 训练中心使用 项目名
 	ProjectPath string `yaml:"projectPath"` // 训练中心使用 项目路径
 	ProviderType string `yaml:"providerType"` // 训练中心使用 框架名称
@@ -209,7 +209,8 @@ func DoTrain(m *AiTrain) (err error) {
 			temp.Otherlabeltraintype =  m.Otherlabeltraintype
 			temp.MergeTrainSymbol =  m.Mergetrainsymbol
 
-			temp.ProjectName = m.Projectname
+			temp.ProjectName = project.ProjectName
+			temp.ProjectId = project.Id
 			temp.TaskId = m.Taskid
 			temp.ProviderType = m.Providertype
 
@@ -231,7 +232,7 @@ func DoTrain(m *AiTrain) (err error) {
 				IsJump:        0,
 				DrawUrl: fmt.Sprintf("%s/%s/training_data/train_%s/chart.png",
 					beego.AppConfig.DefaultString("drawBaseUrl", "http://localhost:1121/"),
-					m.Projectname, m.Taskid),
+					project.ProjectName, m.Taskid),
 				CreateTime: time.Now(),
 			}
 			_, err = AddQtTrainRecord(record)
@@ -271,10 +272,19 @@ func updateStatus(fs afero.Fs, statusFile string, status string, statusCode int,
 		if data, err := GetQtTrainRecordByTaskId(taskId); err == nil {
 			data.Status = statusCode
 			data.ContainerId = dockerId
-			_ = UpdateQtTrainRecordById(data)
-		}
-		if statusCode == StoppedInt || statusCode == DoneInt || statusCode == FailedInt || statusCode == UnknownInt {
-			go GetMsg(true)
+			if err = UpdateQtTrainRecordById(data); err == nil {
+				if statusCode == StoppedInt || statusCode == DoneInt || statusCode == FailedInt || statusCode == UnknownInt {
+					go GetMsg(true)
+				}
+			} else {
+				logrus.WithField("errType", "更新记录状态出错").Error(err.Error())
+			}
+		} else {
+			logrus.WithFields(logrus.Fields{
+				"errType": "无法通过taskId找到记录",
+				"taskId": taskId,
+				"statusCode": statusCode,
+			}).Error(err.Error())
 		}
 	} else {
 		logrus.WithFields(logrus.Fields{
@@ -292,26 +302,26 @@ func cronFunc() {
 		var trainConfig QTingTiny3L
 		if err := yaml.Unmarshal(msgBody, &trainConfig); err == nil {
 			if data, err := yaml.Marshal(trainConfig); err == nil {
-				logrus.Debug(string(data))
+				//logrus.Debug(string(data))
 				savePath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/") + trainConfig.ProjectName + "/training_data/"
 				fs := afero.NewOsFs()
 				statusFile := fmt.Sprintf("%s/train_status_%s.log", savePath, trainConfig.TaskId)
 				if isEx, err := afero.Exists(fs, statusFile); err == nil {
 					if isEx {
 						byteStatus, _ := afero.ReadFile(fs, statusFile)
-						logrus.Debug(string(byteStatus))
+						//logrus.Debug(string(byteStatus))
 						switch strings.ReplaceAll(strings.ReplaceAll(string(byteStatus), "\n", ""), " ", "") {
 						case Waiting:
 							cmdStr := fmt.Sprintf("%s --name 'qtingTrain-%s' -v /etc/localtime:/etc/localtime:ro -v %s:%s %s",
 								beego.AppConfig.DefaultString("dockerRunPrefix", "docker run --shm-size 32G --memory-swap -1 --gpus all --rm -d"),
 								trainConfig.TaskId, trainConfig.ProjectPath, trainConfig.Volume, trainConfig.Image)
 							cmd := exec.Command("bash", "-c", cmdStr)
-							output, err := cmd.CombinedOutput()
-							if err != nil {
+							if output, err := cmd.CombinedOutput(); err == nil {
+								updateStatus(fs, statusFile, Training, TrainingInt, trainConfig.TaskId, string(output))
+							} else {
 								logrus.Error(cmdStr)
 								logrus.WithField("out",  string(output)).Error(err.Error())
 							}
-							updateStatus(fs, statusFile, Training, TrainingInt, trainConfig.TaskId, string(output))
 							break
 						case Training:
 							// 检测一下容器是否停止, 如果停止了,判断下是否是训练完成，如果不是训练完成那么就是未知状态
@@ -361,9 +371,9 @@ func cronFunc() {
 			go GetMsg(true)
 		}
 	} else {
-		logrus.Debug("队列空数据")
+		//logrus.Debug("队列空数据")
 	}
-	logrus.Debug(time.Now())
+	//logrus.Debug(time.Now())
 }
 
 
