@@ -5,13 +5,19 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/filter/cors"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jpillora/overseer"
+	"github.com/jpillora/overseer/fetcher"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"os"
 	"qting-ai/models"
 	_ "qting-ai/routers"
+	"qting-ai/version"
+	"strings"
 	"time"
 )
+
 
 func LoggerInit(debug bool) {
 	path := "log/yiningzeng.log"
@@ -43,10 +49,13 @@ func LoggerInit(debug bool) {
 	}
 }
 
-func main() {
-	LoggerInit(beego.AppConfig.DefaultBool("debug", false))
+func Start(state overseer.State) {
 	go models.WatchDir(beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/"))
 	go models.StartCron()
+	fs := afero.NewOsFs()
+	_ = fs.Remove("update")
+	version.PrintVersion()
+	LoggerInit(beego.AppConfig.DefaultBool("debug", false))
 
 	sqlConn, er := beego.AppConfig.String("sqlconn")
 	if er != nil {
@@ -74,6 +83,34 @@ func main() {
 		AllowCredentials: true,
 		AllowOrigins: []string{"http://10.*.*.*:*","http://localhost:*","http://127.0.0.1:*"},
 	}))
+	if state.Enabled {
+		_ = afero.WriteFile(fs, "update-success", nil, 0755)
+	}
 	beego.Run()
+}
+
+func main() {
+	mode := beego.AppConfig.DefaultString("runmode", "prod")
+	if strings.EqualFold("prod", mode) {
+		overseer.Run(overseer.Config{
+			Program: Start,
+			PreUpgrade: func(tempBinaryPath string) error {
+				logrus.WithFields(logrus.Fields{
+					"老版本ID": version.ID,
+					"编译日期":  version.BuildDate,
+				}).Info("已做好老版本备份，删除更新成功状态，开始执行更新")
+				fs := afero.NewOsFs()
+				_ = fs.Remove("update-success")
+				if b, err := afero.ReadFile(fs, "qting-ai"); err == nil {
+					_ = afero.WriteFile(fs, "qting-ai(old)", b, 0755)
+				}
+				return nil
+			},
+			Fetcher: &fetcher.File{Path: "update"},
+			Debug:   false, //display log of overseer actions
+		})
+	} else {
+		Start(overseer.State{Enabled: false})
+	}
 }
 
