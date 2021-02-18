@@ -212,7 +212,7 @@ func QTingTiny3l(taskId string, modelPath string) {
 		qtAiFramework, _ := GetQtAiFrameworkByFrameworkName(aiFrameworkName)
 		var tempName = ""
 		// 先查询是否存在相关的训练记录
-		taskIdTemp := ""
+		taskIdTemp := taskId
 		if strings.Contains(taskId, "-") {
 			taskIdTemp = strings.Split(taskId, "-")[0]
 		}

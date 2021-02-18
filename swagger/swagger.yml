@@ -1,0 +1,1176 @@
+swagger: "2.0"
+info:
+  title: 训练中心
+  description: 自训练中心后台接口
+  version: 3.1.3
+  termsOfService: http://www.qtingvision.com/
+  contact:
+    email: yiningzeng@outlook.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+basePath: /v1
+paths:
+  /ai/:
+    post:
+      tags:
+      - ai
+      description: create AiTrain
+      operationId: AIController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for AiTrain content
+        required: true
+        schema:
+          $ref: '#/definitions/models.AiTrain'
+      responses:
+        "200":
+          description: '{int} models.AiTrain'
+        "403":
+          description: body is empty
+        "704":
+          description: json error
+  /ai/models/:
+    get:
+      tags:
+      - ai
+      description: 用于Aoi软件获取发布的项目模型接口
+      operationId: AIController.用于Aoi软件获取发布的项目模型接口
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtLabels'
+        "403":
+          description: :id is empty
+  /ai/stop/{taskId}:
+    put:
+      tags:
+      - ai
+      description: update the QtAiFramework
+      operationId: AIController.Put
+      parameters:
+      - in: path
+        name: taskId
+        description: The id you want to update
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtTrainRecord'
+        "403":
+          description: :id is not int
+  /qt_ai_framework/:
+    get:
+      tags:
+      - qt_ai_framework
+      description: get QtAiFramework
+      operationId: QtAiFrameworkController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtAiFramework'
+        "403":
+          description: ""
+    post:
+      tags:
+      - qt_ai_framework
+      description: create QtAiFramework
+      operationId: QtAiFrameworkController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtAiFramework content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtAiFramework'
+      responses:
+        "201":
+          description: '{int} models.QtAiFramework'
+        "403":
+          description: body is empty
+  /qt_ai_framework/{id}:
+    get:
+      tags:
+      - qt_ai_framework
+      description: get QtAiFramework by id
+      operationId: QtAiFrameworkController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtAiFramework'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - qt_ai_framework
+      description: update the QtAiFramework
+      operationId: QtAiFrameworkController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for QtAiFramework content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtAiFramework'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtAiFramework'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - qt_ai_framework
+      description: delete the QtAiFramework
+      operationId: QtAiFrameworkController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /qt_labels/:
+    get:
+      tags:
+      - qt_labels
+      description: get QtLabels
+      operationId: QtLabelsController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtLabels'
+        "403":
+          description: ""
+    post:
+      tags:
+      - qt_labels
+      description: create QtLabels
+      operationId: QtLabelsController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtLabels content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtLabels'
+      responses:
+        "201":
+          description: '{int} models.QtLabels'
+        "403":
+          description: body is empty
+  /qt_labels/{id}:
+    get:
+      tags:
+      - qt_labels
+      description: get QtLabels by id
+      operationId: QtLabelsController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtLabels'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - qt_labels
+      description: update the QtLabels
+      operationId: QtLabelsController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for QtLabels content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtLabels'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtLabels'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - qt_labels
+      description: delete the QtLabels
+      operationId: QtLabelsController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /qt_labels/GetOneByProjectId/{projectId}:
+    get:
+      tags:
+      - qt_labels
+      description: get QtLabels by ProjectId
+      operationId: QtLabelsController.GetOneByProjectId
+      parameters:
+      - in: path
+        name: projectId
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtLabels'
+        "403":
+          description: :projectId is empty
+  /qt_models/:
+    get:
+      tags:
+      - qt_models
+      description: get QtModels
+      operationId: QtModelsController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtModels'
+        "403":
+          description: ""
+    post:
+      tags:
+      - qt_models
+      description: create QtModels
+      operationId: QtModelsController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtModels content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtModels'
+      responses:
+        "201":
+          description: '{int} models.QtModels'
+        "403":
+          description: body is empty
+  /qt_models/{id}:
+    get:
+      tags:
+      - qt_models
+      description: get QtModels by id
+      operationId: QtModelsController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtModels'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - qt_models
+      description: update the QtModels
+      operationId: QtModelsController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for QtModels content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtModels'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtModels'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - qt_models
+      description: delete the QtModels
+      operationId: QtModelsController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /qt_models/GetAllQtModelsByLabelsAndMulti/:
+    get:
+      tags:
+      - qt_models
+      description: get QtModels
+      operationId: QtModelsController.获取模型的所有模型通过字段
+      parameters:
+      - in: query
+        name: projectId
+        description: 项目id
+        type: string
+      - in: query
+        name: label
+        description: 单个标签名
+        type: string
+      - in: query
+        name: isMultilabel
+        description: 是否是多类单标签，如果该值!=0 那么label上面的值会失效
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtModels'
+        "403":
+          description: ""
+  /qt_models/OnlineModel/:
+    post:
+      tags:
+      - qt_models
+      description: create QtModels
+      operationId: QtModelsController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtModels content
+        required: true
+        schema:
+          $ref: '#/definitions/models.OnlineModelPar'
+      responses:
+        "201":
+          description: '{int} models.QtModels'
+        "403":
+          description: body is empty
+  /qt_projects/:
+    get:
+      tags:
+      - qt_projects
+      description: get QtProjects
+      operationId: QtProjectsController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtProjects'
+        "403":
+          description: ""
+    post:
+      tags:
+      - qt_projects
+      description: create QtProjects
+      operationId: QtProjectsController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtProjects content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtProjects'
+      responses:
+        "201":
+          description: '{int} models.QtProjects'
+        "403":
+          description: body is empty
+  /qt_projects/{id}:
+    get:
+      tags:
+      - qt_projects
+      description: get QtProjects by id
+      operationId: QtProjectsController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtProjects'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - qt_projects
+      description: update the QtProjects
+      operationId: QtProjectsController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for QtProjects content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtProjects'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtProjects'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - qt_projects
+      description: delete the QtProjects
+      operationId: QtProjectsController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /qt_rabbitmq_info/:
+    get:
+      tags:
+      - qt_rabbitmq_info
+      description: get QtRabbitmqInfo
+      operationId: QtRabbitmqInfoController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtRabbitmqInfo'
+        "403":
+          description: ""
+    post:
+      tags:
+      - qt_rabbitmq_info
+      description: create QtRabbitmqInfo
+      operationId: QtRabbitmqInfoController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtRabbitmqInfo content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtRabbitmqInfo'
+      responses:
+        "201":
+          description: '{int} models.QtRabbitmqInfo'
+        "403":
+          description: body is empty
+  /qt_rabbitmq_info/{id}:
+    get:
+      tags:
+      - qt_rabbitmq_info
+      description: get QtRabbitmqInfo by id
+      operationId: QtRabbitmqInfoController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtRabbitmqInfo'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - qt_rabbitmq_info
+      description: update the QtRabbitmqInfo
+      operationId: QtRabbitmqInfoController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for QtRabbitmqInfo content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtRabbitmqInfo'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtRabbitmqInfo'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - qt_rabbitmq_info
+      description: delete the QtRabbitmqInfo
+      operationId: QtRabbitmqInfoController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /qt_train_record/:
+    get:
+      tags:
+      - qt_train_record
+      description: get QtTrainRecord
+      operationId: QtTrainRecordController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtTrainRecord'
+        "403":
+          description: ""
+    post:
+      tags:
+      - qt_train_record
+      description: create QtTrainRecord
+      operationId: QtTrainRecordController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtTrainRecord content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtTrainRecord'
+      responses:
+        "201":
+          description: '{int} models.QtTrainRecord'
+        "403":
+          description: body is empty
+  /qt_train_record/{id}:
+    get:
+      tags:
+      - qt_train_record
+      description: get QtTrainRecord by id
+      operationId: QtTrainRecordController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtTrainRecord'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - qt_train_record
+      description: update the QtTrainRecord
+      operationId: QtTrainRecordController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for QtTrainRecord content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtTrainRecord'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtTrainRecord'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - qt_train_record
+      description: delete the QtTrainRecord
+      operationId: QtTrainRecordController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
+  /qt_train_record/GetOneByTaskId/{taskId}:
+    get:
+      tags:
+      - qt_train_record
+      description: get QtTrainRecord by TaskId
+      operationId: QtTrainRecordController.Get One By TaskId
+      parameters:
+      - in: path
+        name: taskId
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtTrainRecord'
+        "403":
+          description: :id is empty
+  /tools/fsnotify/{dir}:
+    put:
+      tags:
+      - tools
+      description: create QtLabels
+      operationId: ToolsController.Put
+      parameters:
+      - in: path
+        name: dir
+        description: 需要监控的文件夹目录
+        required: true
+        type: string
+      responses:
+        "201":
+          description: '{int} 监控成功'
+        "403":
+          description: body is empty
+  /tools/version:
+    get:
+      tags:
+      - tools
+      description: 获取程序的版本信息
+      operationId: ToolsController.GetVersion
+      responses:
+        "200":
+          description: 获取成功
+        "703":
+          description: 获取队列失败
+definitions:
+  models.AiTrain:
+    title: AiTrain
+    type: object
+    properties:
+      ProjectId:
+        type: integer
+        format: int64
+      aiFrameworkId:
+        type: integer
+        format: int64
+      angle:
+        type: integer
+        format: int64
+      assetsType:
+        type: string
+      batchSize:
+        type: integer
+        format: int64
+      cell_stride:
+        type: integer
+        format: int64
+      cellsize:
+        type: integer
+        format: int64
+      expand_size:
+        type: array
+        items:
+          type: integer
+          format: int64
+      gpus:
+        type: string
+      ignore_size:
+        type: array
+        items:
+          type: integer
+          format: int64
+      imageHeight:
+        type: integer
+        format: int64
+      imageWidth:
+        type: integer
+        format: int64
+      isshuffle:
+        type: boolean
+      learnrate:
+        type: number
+        format: float
+      maxIter:
+        type: integer
+        format: int64
+      mergeTrainSymbol:
+        type: integer
+        format: int64
+      otherlabelstride:
+        type: integer
+        format: int64
+      otherlabeltraintype:
+        type: integer
+        format: int64
+      pretrainWeight:
+        type: string
+      projectName:
+        type: string
+      providerType:
+        type: string
+      recalldatum:
+        type: integer
+        format: int64
+      resizearrange:
+        type: array
+        items:
+          type: number
+          format: float
+      rmgeneratedata:
+        type: integer
+        format: int64
+      singleTrain:
+        type: array
+        items:
+          type: string
+      split_ratio:
+        type: number
+        format: float
+      subdivisionssize:
+        type: integer
+        format: int64
+      taskId:
+        type: string
+      taskName:
+        type: string
+      trainwithnolabelpic:
+        type: integer
+        format: int64
+      trianType:
+        type: integer
+        format: int64
+  models.OnlineModelPar:
+    title: OnlineModelPar
+    type: object
+    properties:
+      Label:
+        type: string
+      ModelHeight:
+        type: integer
+        format: int64
+      ModelId:
+        type: integer
+        format: int64
+      ModelWidth:
+        type: integer
+        format: int64
+  models.QtAiFramework:
+    title: QtAiFramework
+    type: object
+    properties:
+      BaseImageUrl:
+        description: 基础镜像地址
+        type: string
+      Cfg:
+        description: 对应的配置文件
+        type: string
+      CreateTime:
+        type: string
+        format: datetime
+      FrameworkName:
+        description: ai框架名称
+        type: string
+      Id:
+        type: integer
+        format: int64
+      ImageVersion:
+        description: 镜像版本
+        type: string
+      Remarks:
+        description: 备注
+        type: string
+      Volume:
+        description: 数据映射的镜像内部地址
+        type: string
+  models.QtLabels:
+    title: QtLabels
+    type: object
+    properties:
+      CreateTime:
+        type: string
+        format: datetime
+      Id:
+        type: integer
+        format: int64
+      LabelName:
+        description: 标签名称
+        type: string
+      ProjectId:
+        $ref: '#/definitions/models.QtProjects'
+      Remarks:
+        type: string
+  models.QtModels:
+    title: QtModels
+    type: object
+    properties:
+      AiFrameworkId:
+        $ref: '#/definitions/models.QtAiFramework'
+        description: 训练使用的框架ID
+      CreateTime:
+        type: string
+        format: datetime
+      Id:
+        type: integer
+        format: int64
+      IsMultilabel:
+        type: integer
+        format: int64
+      LabelStr:
+        type: string
+      ModelName:
+        description: 模型名称
+        type: string
+      ModelPath:
+        description: 模型的本地路径
+        type: string
+      ProjectId:
+        $ref: '#/definitions/models.QtProjects'
+        description: 项目名
+      PublishTime:
+        type: string
+        format: datetime
+      PublishUrl:
+        description: 模型的发布地址
+        type: string
+      Status:
+        type: integer
+        format: int64
+      SuggestScore:
+        description: 推荐置信度的json值
+        type: string
+      TaskId:
+        description: 主要是方便后期更新这个模型通过taskId来查询
+        type: string
+  models.QtProjects:
+    title: QtProjects
+    type: object
+    properties:
+      AssetsPath:
+        description: 项目的目录默认所有的项目目录都存在/qtingvisionfolder/Projects/
+        type: string
+      CreateTime:
+        type: string
+        format: datetime
+      Id:
+        type: integer
+        format: int64
+      ImageHeight:
+        description: 默认指的是发布时的图像高
+        type: integer
+        format: int64
+      ImageWidth:
+        description: 默认指的是发布时的图像宽
+        type: integer
+        format: int64
+      Labels:
+        type: array
+        items:
+          $ref: '#/definitions/models.QtLabels'
+      ProjectName:
+        description: 项目名称
+        type: string
+      Remarks:
+        description: 备注
+        type: string
+  models.QtRabbitmqInfo:
+    title: QtRabbitmqInfo
+    type: object
+    properties:
+      CreateTime:
+        type: string
+        format: datetime
+      Id:
+        type: integer
+        format: int64
+      Message:
+        description: 一次执行的队列信息
+        type: string
+      Queue:
+        description: 对列名
+        type: string
+      RecordId:
+        $ref: '#/definitions/models.QtTrainRecord'
+        description: 对应的train_record表的id
+  models.QtTrainRecord:
+    title: QtTrainRecord
+    type: object
+    properties:
+      AiFrameworkId:
+        $ref: '#/definitions/models.QtAiFramework'
+        description: 训练使用的框架ID
+      AssetsType:
+        description: 训练的数据类型
+        type: string
+      ContainerId:
+        description: 训练的容器的id
+        type: string
+      CreateTime:
+        type: string
+        format: datetime
+      DrawUrl:
+        description: 画图的网址
+        type: string
+      Id:
+        type: integer
+        format: int64
+      IsJump:
+        type: integer
+        format: int64
+      ProjectId:
+        $ref: '#/definitions/models.QtProjects'
+        description: 项目名
+      Status:
+        type: integer
+        format: int64
+      TaskId:
+        description: 任务标识
+        type: string
+      TaskName:
+        description: 训练任务名称
+        type: string
+tags:
+- name: qt_ai_framework
+  description: |
+    QtAiFrameworkController operations for QtAiFramework
+- name: qt_labels
+  description: |
+    QtLabelsController operations for QtLabels
+- name: qt_models
+  description: |
+    QtModelsController operations for QtModels
+- name: qt_projects
+  description: |
+    QtProjectsController operations for QtProjects
+- name: qt_rabbitmq_info
+  description: |
+    QtRabbitmqInfoController operations for QtRabbitmqInfo
+- name: qt_train_record
+  description: |
+    QtTrainRecordController operations for QtTrainRecord
+- name: tools
+  description: |
+    QtLabelsController operations for QtLabels
+- name: ai
+  description: |
+    QtLabelsController operations for QtLabels
