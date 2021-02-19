@@ -4,52 +4,12 @@ import Iframe from 'react-iframe';
 import { SettingOutlined, SmileTwoTone, CloudUploadOutlined } from '@ant-design/icons';
 import '@ant-design/compatible/assets/index.css';
 import dva, { connect } from 'dva';
-import {
-    InputNumber,
-    Tabs,
-    Tag,
-    Row,
-    Modal,
-    Spin,
-    Col,
-    Collapse,
-    Table,
-    message,
-    PageHeader,
-    Button,
-    Typography,
-    Drawer,
-    Divider,
-    Select,
-    Switch,
-    Input,
-    notification,
-    Radio,
-    Badge,
-    Popconfirm,
-    Image,
-    Form,
-    Empty
-} from 'antd';
+import {InputNumber, Tabs, Tag, Row, Modal, Spin, Col, Collapse, Table, message, PageHeader, Button, Typography, Drawer, Divider, Select, Switch, Input, notification, Radio, Badge, Popconfirm, Image, Form, Empty} from 'antd';
 // 由于 antd 组件的默认文案是英文，所以需要修改为中文
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
-import { getList_v1,
-    getProjects_v1,
-    getLabels_v1,
-    getAiFramework_v1,
-    postTrain_v1,
-    getModelsByLabelsAndMulti_v1,
-
-    delModel_v1,
-    delRecord_v1,
-    onlineModel_v1,
-
-    getModelList, getValPathList, getVocPathList,
-    startTest, stopTrain, continueTrainTrain, getLocalPathList, getModelListV2,
-    get_release_models_history, del_model, online_model, offline_model,
-    getLabelsWithScoreByProject, suggest_score_get, suggest_score_put, get_model_size, get_models_multilabel, get_multilabel_by_model } from './services/api';
+import {getList_v1, getProjects_v1, getLabels_v1, getAiFramework_v1, postTrain_v1, getModelsByLabelsAndMulti_v1, delModel_v1, delRecord_v1, onlineModel_v1} from './services/api';
 const { Title, Paragraph, Text } = Typography;
 const { Option } = Select;
 const InputGroup = Input.Group;
@@ -61,31 +21,9 @@ const { TabPane } = Tabs;
  */
 class FreeFish extends React.Component {
     state = {
-        fuck: false,
         lossImgPreviewVisible: false,
         showSettingsModal: false,
         imageLossTimer: "zengyining",
-        test: {
-            frontImage: "registry.cn-hangzhou.aliyuncs.com/baymin/darknet-test:",
-            baseImage: "latest",
-            showTestDrawer: false,
-            showTestDrawerUrl: "",
-            showTestModal: false,
-            showStandardValidationData: false,
-            loading: false,
-            tips: "载入可使用的权重文件... ",
-            doTest: {
-                providerType: "QTing-tiny-3l-single",
-                assetsDir: "", // nowAssetsDir
-                weights: undefined,
-                valPath: undefined,
-                port: 8100,
-                javaUrl: "ai.8101.api.qtingvision.com",
-                javaPort: 888,
-                image: "registry.cn-hangzhou.aliyuncs.com/baymin/darknet-test:latest",
-                projectId: undefined,
-            },
-        },
         timer: null,
         refreshInterval: localStorage.getItem("refreshInterval") === null?5000:localStorage.getItem("refreshInterval"),
         refreshTime: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -93,18 +31,12 @@ class FreeFish extends React.Component {
         project_labels: [],
         loadingChart: false,
         pagination: {defaultPageSize:100, current:1},
-        loading: false,
-        leftVisible: false,
         rightVisible: false,
-        doChangeAssetsDir: true,
-
         api: {
             url: localStorage.getItem("api.url") === null?"localhost":localStorage.getItem("api.url"),
             port: localStorage.getItem("api.port") === null?8080:localStorage.getItem("api.port"),
         },
         train : {
-            frontImage: "registry.cn-hangzhou.aliyuncs.com/qtingvision/auto-train-tiny:",
-            baseImage: "latest",
             showAiPar: false,
             loading: false,
             doTrain: {
@@ -144,27 +76,6 @@ class FreeFish extends React.Component {
                 isshuffle: true, // 是否打乱数据
             },
         },
-        suggestScore: {
-            loading: false,
-            maxDetPerdm: undefined,
-            pixel2realLength: undefined,
-        },
-        continueTrain: {
-            showModal: false,
-            loading: false,
-            frontImage: "registry.cn-hangzhou.aliyuncs.com/qtingvision/auto-train:",
-            baseImage: "latest",
-            width: undefined,
-            height: undefined,
-            max_batches: undefined,
-            projectId: undefined, // 项目id
-            assetsType: "powerAi", // 素材的类型，pascalVoc和coco和other
-            projectName: undefined, // 项目名称
-            providerType: "QTing-tiny-3l-single", // 框架的类型yolov3 fasterRcnn maskRcnn
-            image: "registry.cn-hangzhou.aliyuncs.com/qtingvision/auto-train:latest", // 镜像路径
-            assetsDir: "", //nowAssetsDir
-            weights: undefined,
-        },
         modelManagerSingle: {
             loadingProjects: false,
             expandedRowKeys: undefined,
@@ -172,7 +83,6 @@ class FreeFish extends React.Component {
             loadingModels: true,
             firstVisible: false,
             secondVisible: false,
-            secondReleaseManagerVisible: false,
         },
         modelManagerMultilabel: {
             loadingModels: true,
@@ -181,7 +91,6 @@ class FreeFish extends React.Component {
             nowEditProjectName: undefined,
             firstVisible: false,
             secondVisible: false,
-            secondReleaseManagerVisible: false,
         },
         publishModal: {
             visible: false,
@@ -203,6 +112,7 @@ class FreeFish extends React.Component {
 
     componentWillMount() {
         message.success(`正在加载`);
+        // region 初始化
         const {dispatch} = this.props;
         dispatch({
             type: 'service/getList_v1',
@@ -213,14 +123,6 @@ class FreeFish extends React.Component {
                 limit: 200,
             },
             callback: (v) => {
-                // console.log(`加载：${JSON.stringify(v)}`);
-                //<Pagination
-                //       total={85}
-                //       showTotal={total => `Total ${total} items`}
-                //       pageSize={20}
-                //       defaultCurrent={1}
-                //     />
-                // noinspection JSAnnotator
                 this.setState({
                     ...this.state,
                     pagination:{
@@ -258,6 +160,7 @@ class FreeFish extends React.Component {
             });
             console.log("我是定时任务");
         }, this.state.refreshInterval);
+        // endregion
     }
 
     componentWillUnmount() {
@@ -291,25 +194,7 @@ class FreeFish extends React.Component {
         });
     };
 
-    showLeftDrawer = () => {
-        this.setState({
-            leftVisible: true,
-        });
-    };
-
-    hideLeftDrawer = () => {
-        this.setState({
-            leftVisible: false,
-        });
-    };
-
-
-
     render() {
-        const {
-            service: {modelList, modelListV2, valPathList, vocPathList, modelByProject, labelsByProject,labelsWithScoreByProject, release_models_history_res, models_multilabel, multilabel_by_model}
-        } = this.props;
-
         const expandedRowRender = (record) => {
             return <div>
                     <Row>
@@ -452,7 +337,6 @@ class FreeFish extends React.Component {
                     </Row>
                 </div>
         };
-
         const expandedModelsRowRender = (mainRecord, index, indent, expanded) => {
             return  <div>
                 <Spin tip="正在加载..." spinning={this.state.modelManagerSingle.loadingModels}>
@@ -589,7 +473,6 @@ class FreeFish extends React.Component {
                 </Spin>
             </div>;
         };
-
         return (
             <PageHeader backIcon={false}
                 title="训练中心"
@@ -610,7 +493,12 @@ class FreeFish extends React.Component {
                         <Option value="60000">60s</Option>
                         <Option value="6000000">6000s</Option>
                     </Select>,
-                    <Button key="1" type="primary" onClick={() => {
+                    <Button type="primary" onClick={() => {
+
+                    }}>
+                        AI框架管理
+                    </Button>,
+                    <Button type="primary" onClick={() => {
                         this.setState({
                             ...this.state,
                             modelManagerSingle: {
@@ -623,13 +511,7 @@ class FreeFish extends React.Component {
                             dispatch({
                                 type: 'service/getProjects_v1',
                                 callback: (aa) => {
-                                    this.setState({
-                                        ...this.state,
-                                        suggestScore: {
-                                            ...this.state.suggestScore,
-                                            maxDetPerdm: undefined,
-                                            pixel2realLength: undefined,
-                                        }});
+
                                 }
                             });
                         });
@@ -674,7 +556,6 @@ class FreeFish extends React.Component {
                                                         this.setState({
                                                             ...this.state,
                                                             rightVisible: true,
-                                                            leftVisible: true,
                                                             train: {
                                                                 ...this.state.train,
                                                                 doTrain: {
@@ -717,7 +598,8 @@ class FreeFish extends React.Component {
                             title: '对应项目名称',
                             dataIndex: 'ProjectId',
                             render: v => {
-                                return v.ProjectName;
+                                if (v === null || v === undefined){return "-";}
+                                    else {return v.ProjectName};
                             }
                         }, {
                             title: '网络框架',
@@ -766,6 +648,7 @@ class FreeFish extends React.Component {
                                     selectedRowKeys: [record.TaskId],
                                     loadingChart: true,
                                 }, () => {
+                                    if (record.ProjectId === null) return;
                                     const {dispatch} = this.props;
                                     dispatch({
                                         type: 'service/getLabels_v1',
@@ -795,6 +678,8 @@ class FreeFish extends React.Component {
                 }
             >
                 <div className="wrap">
+                    {//region 接口设置
+                    }
                     <Modal
                         title="设置"
                         okText="保存"
@@ -849,150 +734,11 @@ class FreeFish extends React.Component {
                             }} defaultValue={this.state.apiPort} placeholder="port"/>
                         </InputGroup>
                     </Modal>
-                    <Modal
-                        title="参数设置"
-                        okText="打开测试服务"
-                        cancelText="取消"
-                        destroyOnClose
-                        width={1000}
-                        visible={this.state.test.showTestModal}
-                        onOk={() => {
-                            const {dispatch} = this.props;
-                            this.setState({
-                                    ...this.state,
-                                    test: {
-                                        ...this.state.test,
-                                        tips: "正在打开服务",
-                                        // showTestModal: false,
-                                        loading: true,
-                                    }
-                                },
-                                () => {
-                                    dispatch({
-                                        type: 'service/startTest',
-                                        payload: {
-                                            ...this.state.test.doTest
-                                        },
-                                        callback: (v) => {
-                                            if (v.res !== "ok") {
-                                                message.error(v.msg);
-                                            }
+                    {//endregion
+                    }
 
-                                            this.setState({
-                                                ...this.state,
-                                                test: {
-                                                    ...this.state.test,
-                                                    showTestDrawer: true,
-                                                    showTestModal: false,
-                                                    loading: false,
-                                                    doTest: {
-                                                        ...this.state.test.doTest,
-                                                        weights: undefined,
-                                                    },
-                                                    // showTestDrawerUrl: `/test?javaUrl=${}&javaPort=${}&providerType=${this.state.test.doTest.providerType}&port=${this.state.test.port}&assets=${this.state.test.doTest.assetsDir}`,
-                                                    showTestDrawerUrl: `/test?projectId=${this.state.test.doTest.projectId}&javaUrl=${this.state.test.doTest.javaUrl}&javaPort=${this.state.test.doTest.javaPort}&providerType=${this.state.test.doTest.providerType}&port=${this.state.test.doTest.port}&assets=${this.state.test.doTest.assetsDir}`,
-                                                }
-                                            });
-
-                                            // const tempwindow=window.open();
-                                            // tempwindow.location=`/test?port=8100&assets=${this.state.test.nowAssetsDir}`;
-                                            // window.open(`/test?port=8100&assets=${this.state.test.nowAssetsDir}`, "_blank");
-                                            // window.open(`/test?port=8100&assets=${this.state.test.nowAssetsDir}`, "_blank", "scrollbars=yes,resizable=1,modal=false,alwaysRaised=yes");
-                                        }
-                                    });
-                                });
-                        }}
-                        onCancel={() => {
-                            this.setState({
-                                ...this.state,
-                                test: {
-                                    ...this.state.test,
-                                    showTestModal: false,
-                                    doTest: {
-                                        ...this.state.test.doTest,
-                                        weights: undefined,
-                                    }
-                                }
-                            });
-                        }}
-                        okButtonProps={{disabled: this.state.test.doTest.weights === undefined}}
-                        cancelButtonProps={{disabled: false}}
-                    >
-                        <Spin spinning={this.state.test.loading} tip={this.state.test.tips} delay={500}>
-                            网络框架:
-                            <Input style={{width: '100%', marginTop: "10px", marginBottom: "10px"}}
-                                   placeholder="Basic usage" disabled value={this.state.test.doTest.providerType}/>
-                            服务端口:
-                            <Input style={{width: '100%', marginTop: "10px", marginBottom: "10px"}}
-                                   placeholder="Basic usage" disabled value={this.state.test.doTest.port}/>
-                            选择加载的权重文件:
-                            <Select
-                                style={{width: '100%', marginTop: "10px", marginBottom: "10px"}}
-                                onChange={(v) => {
-                                    this.setState({
-                                        ...this.state,
-                                        test: {
-                                            ...this.state.test,
-                                            doTest: {
-                                                ...this.state.test.doTest,
-                                                weights: v
-                                            }
-                                        }
-                                    });
-                                }}>
-                                {modelList.weights_list.map(d => (
-                                    <Option key={d.path}>{d.filename}</Option>
-                                ))}
-                            </Select>
-                            镜像地址:
-                            <Input style={{marginTop: "10px", marginBottom: "20px"}} placeholder="tar压缩包名"
-                                   addonBefore={this.state.test.frontImage}
-                                   value={this.state.test.baseImage} allowClear
-                                   onChange={(e) => this.setState({
-                                       ...this.state,
-                                       test: {
-                                           ...this.state.test,
-                                           doTest: {
-                                               ...this.state.test.doTest,
-                                               image: `${this.state.test.frontImage}${e.target.value}`
-                                           }
-                                       }
-                                   })}/>
-                            标准验证集:&nbsp;&nbsp;
-                            <Switch checkedChildren="使用" unCheckedChildren="不使用"
-                                    onChange={(c) => {
-                                        this.setState({
-                                            ...this.state,
-                                            test: {
-                                                ...this.state.test,
-                                                showStandardValidationData: c,
-                                            }
-                                        })
-                                    }}/>
-                            <br/>
-                            {
-                                this.state.test.showStandardValidationData && <div>选择加载的标准验证集目录:<Select
-                                    style={{width: '100%', marginTop: "10px", marginBottom: "10px"}}
-                                    onChange={(v) => {
-                                        this.setState({
-                                            ...this.state,
-                                            test: {
-                                                ...this.state.test,
-                                                doTest: {
-                                                    ...this.state.test.doTest,
-                                                    valPath: v
-                                                }
-                                            }
-                                        });
-                                    }}>
-                                    {valPathList.val_path_list.map(d => (
-                                        <Option key={d.path}>{d.dir_name}</Option>
-                                    ))}
-                                </Select>
-                                </div>
-                            }
-                        </Spin>
-                    </Modal>
+                    {//region 模型发布设置
+                    }
                     <Modal
                         maskClosable={false}
                         destroyOnClose
@@ -1080,41 +826,11 @@ class FreeFish extends React.Component {
                             }
                         })}/>
                     </Modal>
-                    <Drawer
-                        title="在线测试"
-                        placement="left"
-                        width="100%"
-                        height="1500px"
-                        closable={true}
-                        onClose={() => {
-                            this.setState({
-                                ...this.state,
-                                test: {
-                                    ...this.state.test,
-                                    showTestDrawer: false,
-                                }
-                            })
-                        }}
-                        visible={this.state.test.showTestDrawer}
-                    >
-                        <Iframe url={this.state.test.showTestDrawerUrl}
-                                width="100%"
-                                height="850px"
-                                id="myId"
-                                frameBorder={0}
-                                className="myClassname"
-                                display="initial"
-                                position="relative"/>
-                        {/*<Iframe url={this.state.test.showTestDrawerUrl}*/}
-                        {/*width="100%"*/}
-                        {/*height="500px"*/}
-                        {/*id="myId"*/}
-                        {/*frameBorder={0}*/}
-                        {/*className="myClassname"*/}
-                        {/*display="initial"*/}
-                        {/*position="relative"/>*/}
-                    </Drawer>
+                    {//endregion
+                    }
 
+                    {//region 新增训练任务
+                    }
                     <Drawer
                         destroyOnClose={true}
                         title="新增训练任务"
@@ -1125,7 +841,6 @@ class FreeFish extends React.Component {
                         onClose={() => {
                             this.setState({
                                 rightVisible: false,
-                                leftVisible: false,
                             });
                         }}
                         visible={this.state.rightVisible}
@@ -1791,9 +1506,9 @@ class FreeFish extends React.Component {
                                             }
                                         });
                                     }}>
-                                    {modelListV2.model_list.map(d => (
-                                        <Option key={d.filename}>{d.filename}</Option>
-                                    ))}
+                                    {/*{modelListV2.model_list.map(d => (*/}
+                                    {/*    <Option key={d.filename}>{d.filename}</Option>*/}
+                                    {/*))}*/}
                                 </Select>
                                 <br/>
                                 <br/>
@@ -1817,7 +1532,6 @@ class FreeFish extends React.Component {
                             <Button onClick={() => {
                                 this.setState({
                                     rightVisible: false,
-                                    leftVisible: false,
                                 });
                             }} style={{marginRight: 8}}>
                                 关闭
@@ -1853,14 +1567,20 @@ class FreeFish extends React.Component {
                                                             this.setState({
                                                                 ...this.state,
                                                                 rightVisible: false,
-                                                                leftVisible: false,
                                                                 train: {
                                                                     ...this.state.train,
                                                                     loading: false,
                                                                 }
                                                             });
                                                         } else {
-                                                            message.error("加入训练队列失败");
+                                                            let errMsg  = v.Data;
+                                                            if (errMsg.includes("yaml: no such file or directory")) {
+                                                                errMsg = "当前选择的训练框架，配置文件缺失。" + errMsg;
+                                                            }
+                                                            notification.error({
+                                                                message: "加入训练队列失败",
+                                                                description: `错误原因: ${errMsg}`,
+                                                            });
                                                             this.setState({
                                                                 ...this.state,
                                                                 train: {
@@ -1885,6 +1605,11 @@ class FreeFish extends React.Component {
                         </div>
                     </Drawer>
 
+                    {//endregion
+                    }
+
+                    {//region 项目列表
+                    }
                     <Drawer
                         destroyOnClose={true}
                         title="项目列表"
@@ -2206,8 +1931,8 @@ class FreeFish extends React.Component {
                             </Spin>
                         </Drawer>
                     </Drawer>
-                    {/*<div className="content padding">{content}</div>*/}
-                    {/*<div className="content padding">{extraContent}</div>*/}
+                    {//endregion 项目列表
+                    }
                 </div>
             </PageHeader>
 
@@ -2254,82 +1979,6 @@ app.model({
             Data: undefined,
         },
         // endregion
-        res: {
-            code: undefined,
-            status: undefined,
-            msg: '',
-            data: [],
-        },
-        modelList: {
-            res: '',
-            weights_list: [],
-            width: undefined,
-            height: undefined,
-            max_batches: undefined,
-        },
-        modelListV2: {
-            res: '',
-            model_list: [],
-        },
-        valPathList: {
-            res: '',
-            val_path_list: [],
-        },
-        vocPathList: {
-            res: '',
-            voc_path_list: [],
-        },
-        modelByProject: {
-            res: '',
-            message: "",
-            models: [],
-        },
-        labelsByProject: {
-            res: '',
-            message: "",
-            labels: [],
-        },
-        labelsWithScoreByProject:  {
-            res: '',
-            message: "",
-            labels: [],
-        },
-        dotrain:{},
-        testRes: {
-            res: '',
-        },
-        allres: {
-            res: '',
-        },
-        get_release_models_history_res: {
-            res: '',
-            message: "",
-            models: [],
-        },
-        del_model_res: {
-            res: '',
-            message: "",
-        },
-        online_model_res: {
-            res: '',
-            message: "",
-        },
-        offline_model_res: {
-            res: '',
-            message: "",
-        },
-        //region 多标签单模型
-        models_multilabel: {
-            res: '',
-            message: "",
-            models: [],
-        },
-        multilabel_by_model: {
-            res: '',
-            message: "",
-            laebles: [],
-        },
-        //endregion
     },
     reducers: {
         // region v1 新版本
@@ -2369,113 +2018,6 @@ app.model({
                 Normal: action.payload,
             };
         },
-        // endregion
-        res(state, action) {
-            return {
-                ...state,
-                res: action.payload,
-            };
-        },
-        modelList(state, action) {
-            return {
-                ...state,
-                modelList: action.payload,
-            };
-        },
-        valPathList(state, action) {
-            return {
-                ...state,
-                valPathList: action.payload,
-            };
-        },
-        vocPathList(state, action) {
-            return {
-                ...state,
-                vocPathList: action.payload,
-            };
-        },
-        dotrain(state, action) {
-            return {
-                ...state,
-                dotrain: action.payload,
-            };
-        },
-        testRes(state, action) {
-            return {
-                ...state,
-                testRes: action.payload,
-            };
-        },
-        allres(state, action) {
-            return {
-                ...state,
-                allres: action.payload,
-            };
-        },
-        // region 新增接口 自训练
-        localPathList(state, action) {
-            return {
-                ...state,
-                localPathList: action.payload,
-            };
-        },
-        modelByProject(state, action) {
-            return {
-                ...state,
-                modelByProject: action.payload,
-            };
-        },
-        labelsByProject(state, action) {
-            return {
-                ...state,
-                labelsByProject: action.payload,
-            };
-        },
-        labelsWithScoreByProject(state, action) {
-            return {
-                ...state,
-                labelsWithScoreByProject: action.payload,
-            };
-        },
-        modelListV2(state, action) {
-            return {
-                ...state,
-                modelListV2: action.payload,
-            };
-        },
-        get_release_models_history_res(state, action) {
-            return {
-                ...state,
-                get_release_models_history_res: action.payload,
-            };
-        },
-        del_model_res(state, action) {
-            return {
-                ...state,
-                del_model_res: action.payload,
-            };
-        },
-        online_model_res(state, action) {
-            return {
-                ...state,
-                online_model_res: action.payload,
-            };
-        },
-
-        //region 多标签单模型
-        models_multilabel(state, action) {
-            return {
-                ...state,
-                models_multilabel: action.payload,
-            };
-        },
-        multilabel_by_model(state, action) {
-            return {
-                ...state,
-                multilabel_by_model: action.payload,
-            };
-        },
-        //endregion
         // endregion
     },
     effects: {
@@ -2541,144 +2083,6 @@ app.model({
             if (callback)callback(response);
         },
         // endregion
-
-        *getModelList({ payload,callback}, { call, put }) {
-            const response = yield call(getModelList,payload);
-            yield put({
-                type: 'modelList',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *getVocPathList({ payload,callback}, { call, put }) {
-            const response = yield call(getVocPathList,payload);
-            yield put({
-                type: 'vocPathList',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *getValPathList({ payload,callback}, { call, put }) {
-            const response = yield call(getValPathList,payload);
-            yield put({
-                type: 'valPathList',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *doTrain({ payload,callback}, { call, put }) {
-            const response = yield call(doTrain,payload);
-            yield put({
-                type: 'dotrain',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *startTest({ payload,callback}, { call, put }) {
-            const response = yield call(startTest,payload);
-            yield put({
-                type: 'testRes',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *stopTrain({ payload,callback}, { call, put }) {
-            const response = yield call(stopTrain,payload);
-            yield put({
-                type: 'allres',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *continueTrainTrain({ payload,callback}, { call, put }) {
-            const response = yield call(continueTrainTrain,payload);
-            yield put({
-                type: 'allres',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        // region 新增接口 自训练
-        *getLocalPathList({ payload,callback}, { call, put }) {
-            const response = yield call(getLocalPathList,payload);
-            yield put({
-                type: 'localPathList',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *getLabelsWithScoreByProject({ payload,callback}, { call, put }) {
-            const response = yield call(getLabelsWithScoreByProject,payload);
-            yield put({
-                type: 'labelsWithScoreByProject',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *suggest_score_get({ payload,callback}, { call, put }) {
-            const response = yield call(suggest_score_get,payload);
-            if (callback)callback(response);
-        },
-        *suggest_score_put({ payload,callback}, { call, put }) {
-            const response = yield call(suggest_score_put,payload);
-            if (callback)callback(response);
-        },
-        *getModelListV2({ payload,callback}, { call, put }) {
-            const response = yield call(getModelListV2,payload);
-            yield put({
-                type: 'modelListV2',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *getReleaseModelsHistory({ payload,callback}, { call, put }) {
-            const response = yield call(get_release_models_history,payload);
-            yield put({
-                type: 'get_release_models_history_res',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *delModel({ payload,callback}, { call, put }) {
-            const response = yield call(del_model,payload);
-            yield put({
-                type: 'del_model_res',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *getModelSize({ payload,callback}, { call, put }) {
-            const response = yield call(get_model_size,payload);
-            if (callback)callback(response);
-        },
-        *offlineModel({ payload,callback}, { call, put }) {
-            const response = yield call(offline_model,payload);
-            yield put({
-                type: 'offline_model_res',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-
-        //region 多标签单模型
-        *getModelsMultilabel({ payload,callback}, { call, put }) {
-            const response = yield call(get_models_multilabel,payload);
-            yield put({
-                type: 'models_multilabel',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        *getMultilabelByModel({ payload,callback}, { call, put }) {
-            const response = yield call(get_multilabel_by_model,payload);
-            yield put({
-                type: 'multilabel_by_model',
-                payload: response,
-            });
-            if (callback)callback(response);
-        },
-        //endregion
-        // endregion
     },
 });
 // 3. View
@@ -2699,7 +2103,3 @@ app.router(() => <App />);
 
 // 5. Start
 app.start('#root');
-
-
-
-// ReactDOM.render(<App />, document.getElementById('root'));
