@@ -25,6 +25,12 @@ export async function getAiFramework_v1(params) {
         method: 'GET',
     });
 }
+export async function AiFramework_v1(params) {
+    return request(`http://${ip}/v1/qt_ai_framework/${params.method === "PUT" || params.method === "DELETE" ? params.data.Id : ""}`, {
+        method: params.method,
+        body: params.data,
+    });
+}
 export async function postTrain_v1(params) {
     console.log("getList"+JSON.stringify(params));
     return request(`http://${ip}/v1/ai/`, {
