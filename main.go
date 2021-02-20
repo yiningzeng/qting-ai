@@ -68,6 +68,7 @@ func Start(state overseer.State) {
 	//}
 	beego.BConfig.WebConfig.DirectoryIndex = true
 	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+	beego.BConfig.WebConfig.StaticDir["/manage"] = "manage"
 	//InsertFilter是提供一个过滤函数
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		//允许访问所有源

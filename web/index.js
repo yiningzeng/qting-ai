@@ -9,7 +9,7 @@ import {InputNumber, Tabs, Tag, Row, Modal, Spin, Col, Popover, Tooltip, Collaps
 import zhCN from 'antd/lib/locale-provider/zh_CN';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
-const { Title, Paragraph, Text } = Typography;
+const { Title, Paragraph, Text, Link } = Typography;
 const { Option } = Select;
 const InputGroup = Input.Group;
 moment.locale('zh-cn');
@@ -23,6 +23,10 @@ import Models from "./services/models";
 class FreeFish extends React.Component {
     modalAiFramework: React.RefObject<ModalAiFramework> = React.createRef();
     state = {
+        version: {
+            VersionId: undefined,
+            BuildDate: undefined,
+        },
         modalsData: { // 用于存放modal更新的数据
             aiFramework: undefined,
         },
@@ -123,23 +127,33 @@ class FreeFish extends React.Component {
         // region 初始化
         const {dispatch} = this.props;
         dispatch({
-            type: 'service/getList_v1',
-            payload: {
-                sortby: "CreateTime",
-                order: "desc",
-                offset: 0,
-                limit: 200,
-            },
+            type: 'service/getVersion_v1',
             callback: (v) => {
                 this.setState({
                     ...this.state,
-                    pagination: {
-                        ...this.state.pagination,
-                        total: v["total"],
-                        pageSize: v["num"],
-                        current: 1,
-                    }
-                });
+                    version: {...v["Data"]},
+                }, () => {
+                    dispatch({
+                        type: 'service/getList_v1',
+                        payload: {
+                            sortby: "CreateTime",
+                            order: "desc",
+                            offset: 0,
+                            limit: 200,
+                        },
+                        callback: (v) => {
+                            this.setState({
+                                ...this.state,
+                                pagination: {
+                                    ...this.state.pagination,
+                                    total: v["total"],
+                                    pageSize: v["num"],
+                                    current: 1,
+                                }
+                            });
+                        },
+                    });
+                })
             },
         });
         this.state.timer = setInterval(() => {
@@ -489,7 +503,11 @@ class FreeFish extends React.Component {
             <PageHeader backIcon={false}
                         title="训练中心"
                         subTitle="管理后台"
-                        tags={<Tag color="green">在线</Tag>}
+                        tags={[<Tag color="green">在线</Tag>,
+                            <span>{`版本: `}</span>,
+                            <Link href="/swagger" target="_blank">
+                                {`v${this.state.version.VersionId}(${this.state.version.BuildDate})`}
+                            </Link>]}
                         extra={[
                             <span>{`页面刷新时间:`}</span>,
                             <Text mark>{`${this.state.refreshTime}`}</Text>,
@@ -712,7 +730,7 @@ class FreeFish extends React.Component {
                         }
             >
                 <div className="wrap">
-                    {//region 接口设置
+                    {// 接口设置
                     }
                     <Modal
                         title="设置"
@@ -768,10 +786,8 @@ class FreeFish extends React.Component {
                             }} defaultValue={this.state.apiPort} placeholder="port"/>
                         </InputGroup>
                     </Modal>
-                    {//endregion
-                    }
 
-                    {//region 模型发布设置
+                    {// 模型发布设置
                     }
                     <Modal
                         maskClosable={false}
@@ -864,10 +880,8 @@ class FreeFish extends React.Component {
                             }
                         })}/>
                     </Modal>
-                    {//endregion
-                    }
 
-                    {//region 新增训练任务
+                    {// 新增训练任务
                     }
                     <Drawer
                         destroyOnClose={true}
@@ -1645,10 +1659,7 @@ class FreeFish extends React.Component {
                         </div>
                     </Drawer>
 
-                    {//endregion
-                    }
-
-                    {//region 项目列表
+                    {// 项目列表
                     }
                     <Drawer
                         destroyOnClose={true}
@@ -1972,11 +1983,8 @@ class FreeFish extends React.Component {
                             </Spin>
                         </Drawer>
                     </Drawer>
-                    {//endregion
-                    }
 
-
-                    {//region AI框架管理
+                    {// AI框架管理
                     }
                     <Drawer
                         destroyOnClose={true}
@@ -2079,13 +2087,8 @@ class FreeFish extends React.Component {
                             }]}
                                dataSource={this.props.service.AiFrameworks.Data === undefined ? [] : this.props.service.AiFrameworks.Data}/>
                     </Drawer>
-                    {//region AI框架新增或者修改
-                    }
+
                     <ModalAiFramework ref={this.modalAiFramework} dispatch={this.props.dispatch}/>
-                    {//endregion
-                    }
-                    {//endregion
-                    }
                 </div>
             </PageHeader>
 

@@ -4,6 +4,11 @@ import { stringify } from 'qs';
 // const ip="192.168.31.75:8080";//"10.50.102.166";
 const ip = `${localStorage.getItem("api.url") === null?"localhost":localStorage.getItem("api.url")}:${localStorage.getItem("api.port") === null?8080:localStorage.getItem("api.port")}`;
 // region v1 新的接口
+export async function getVersion_v1() {
+    return request(`http://${ip}/v1/tools/version`, {
+        method: 'GET',
+    });
+}
 export async function getList_v1(params) {
     console.log("getList"+JSON.stringify(params));
     return request(`http://${ip}/v1/qt_train_record/?${stringify(params)}`, {

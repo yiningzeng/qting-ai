@@ -7,6 +7,7 @@ import {
     getModelsByLabelsAndMulti_v1,
     getProjects_v1, onlineModel_v1, postTrain_v1,
     AiFramework_v1,
+    getVersion_v1,
 } from "./api";
 const state = {
     // region v1.0 新版本的
@@ -44,6 +45,7 @@ const state = {
 };
 const reducers = {
     // region v1 新版本
+
     TrainRecords(state, action) {
         return {
             ...state,
@@ -84,6 +86,10 @@ const reducers = {
 };
 const effects = {
     // region v1 新版本接口
+    * getVersion_v1({payload, callback}, {call, put}) {
+        const response = yield call(getVersion_v1, payload);
+        if (callback) callback(response);
+    },
     * getList_v1({payload, callback}, {call, put}) {
         const response = yield call(getList_v1, payload);
         yield put({
