@@ -34,14 +34,13 @@ func (c *QtAiFrameworkController) Post() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddQtAiFramework(&v); err == nil {
 			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.SuccessJson(v)
 		} else {
-			c.Data["json"] = err.Error()
+			c.ErrorJson(501,err.Error(),nil)
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.ErrorJson(501,err.Error(),nil)
 	}
-	c.ServeJSON()
 }
 
 // GetOne ...
@@ -54,13 +53,7 @@ func (c *QtAiFrameworkController) Post() {
 func (c *QtAiFrameworkController) GetOne() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	v, err := models.GetQtAiFrameworkById(id)
-	if err != nil {
-		c.Data["json"] = err.Error()
-	} else {
-		c.Data["json"] = v
-	}
-	c.ServeJSON()
+	c.Ret(models.GetQtAiFrameworkById(id))
 }
 
 // GetAll ...
@@ -132,15 +125,11 @@ func (c *QtAiFrameworkController) Put() {
 	id, _ := strconv.Atoi(idStr)
 	v := models.QtAiFramework{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
-		if err := models.UpdateQtAiFrameworkById(&v); err == nil {
-			c.Data["json"] = "OK"
-		} else {
-			c.Data["json"] = err.Error()
-		}
+		c.Ret(v, models.UpdateQtAiFrameworkById(&v))
 	} else {
+		c.ErrorJson(501, "提交的参数错误",nil)
 		c.Data["json"] = err.Error()
 	}
-	c.ServeJSON()
 }
 
 // Delete ...
@@ -153,10 +142,5 @@ func (c *QtAiFrameworkController) Put() {
 func (c *QtAiFrameworkController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteQtAiFramework(id); err == nil {
-		c.Data["json"] = "OK"
-	} else {
-		c.Data["json"] = err.Error()
-	}
-	c.ServeJSON()
+	c.Ret(nil, models.DeleteQtAiFramework(id))
 }

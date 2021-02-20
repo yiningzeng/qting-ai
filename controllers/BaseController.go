@@ -40,7 +40,7 @@ func  (bc *BaseController) Ret(data interface{}, err error) {
 		case "<QuerySeter> no row found":
 			bc.ErrorJson(204, "未查询到内容", nil)
 		default:
-			bc.ErrorJson(500, "失败", err.Error())
+			bc.ErrorJson(500, err.Error(), nil)
 		}
 	} else {
 		bc.SuccessJson(data)
