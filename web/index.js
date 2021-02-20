@@ -626,7 +626,7 @@ class FreeFish extends React.Component {
                                 </Button>
                                 <Button type="primary" onClick={() => this.setState({
                                     ...this.state,
-                                    showSettingsModal: true,
+                                    showSettingsModal: false,
                                 })}>
                                     <SettingOutlined/>
                                 </Button>

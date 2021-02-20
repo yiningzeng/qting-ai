@@ -94,7 +94,7 @@ func OnlineModel(m *OnlineModelPar) (err error) {
 		// endregion
 		qTModel.PublishUrl = strings.ReplaceAll(zipFile,
 			beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/"),
-			beego.AppConfig.DefaultString("drawBaseUrl", "http://localhost:1121/"))
+			".." + beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting"))
 		err = UpdateQtModelsById(qTModel)
 		return nil
 	} else {

@@ -5,62 +5,62 @@ import { stringify } from 'qs';
 const ip = `${localStorage.getItem("api.url") === null?"localhost":localStorage.getItem("api.url")}:${localStorage.getItem("api.port") === null?8080:localStorage.getItem("api.port")}`;
 // region v1 新的接口
 export async function getVersion_v1() {
-    return request(`http://${ip}/v1/tools/version`, {
+    return request(`../v1/tools/version`, {
         method: 'GET',
     });
 }
 export async function getList_v1(params) {
     console.log("getList"+JSON.stringify(params));
-    return request(`http://${ip}/v1/qt_train_record/?${stringify(params)}`, {
+    return request(`../v1/qt_train_record/?${stringify(params)}`, {
         method: 'GET',
     });
 }
 export async function getProjects_v1() {
-    return request(`http://${ip}/v1/qt_projects/`, {
+    return request(`../v1/qt_projects/`, {
         method: 'GET',
     });
 }
 export async function getLabels_v1(params) {
-    return request(`http://${ip}/v1/qt_labels/?${stringify(params)}`, {
+    return request(`../v1/qt_labels/?${stringify(params)}`, {
         method: 'GET',
     });
 }
 export async function getAiFramework_v1(params) {
-    return request(`http://${ip}/v1/qt_ai_framework/?${stringify(params)}`, {
+    return request(`../v1/qt_ai_framework/?${stringify(params)}`, {
         method: 'GET',
     });
 }
 export async function AiFramework_v1(params) {
-    return request(`http://${ip}/v1/qt_ai_framework/${params.method === "PUT" || params.method === "DELETE" ? params.data.Id : ""}`, {
+    return request(`../v1/qt_ai_framework/${params.method === "PUT" || params.method === "DELETE" ? params.data.Id : ""}`, {
         method: params.method,
         body: params.data,
     });
 }
 export async function postTrain_v1(params) {
     console.log("getList"+JSON.stringify(params));
-    return request(`http://${ip}/v1/ai/`, {
+    return request(`../v1/ai/`, {
         method: 'POST',
         body: params
     });
 }
 export async function delRecord_v1(params) {
-    return request(`http://${ip}/v1/qt_train_record/${params.Id}`, {
+    return request(`../v1/qt_train_record/${params.Id}`, {
         method: 'DELETE',
     });
 }
 export async function getModelsByLabelsAndMulti_v1(params) {
-    return request(`http://${ip}/v1/qt_models/GetAllQtModelsByLabelsAndMulti/?${stringify(params)}`, {
+    return request(`../v1/qt_models/GetAllQtModelsByLabelsAndMulti/?${stringify(params)}`, {
         method: 'GET',
     });
 }
 export async function delModel_v1(params) {
-    return request(`http://${ip}/v1/qt_models/${params.Id}`, {
+    return request(`../v1/qt_models/${params.Id}`, {
         method: 'DELETE',
     });
 }
 export async function onlineModel_v1(params) {
     console.log("getList"+JSON.stringify(params));
-    return request(`http://${ip}/v1/qt_models/OnlineModel/`, {
+    return request(`../v1/qt_models/OnlineModel/`, {
         method: 'POST',
         body: params
     });

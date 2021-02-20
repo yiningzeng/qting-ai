@@ -230,8 +230,8 @@ func DoTrain(m *AiTrain) (err error) {
 				AiFrameworkId: aiFramwork,
 				AssetsType:    m.Assetstype,
 				IsJump:        0,
-				DrawUrl: fmt.Sprintf("%s/%s/training_data/train_%s/chart.png",
-					beego.AppConfig.DefaultString("drawBaseUrl", "http://localhost:1121/"),
+				DrawUrl: fmt.Sprintf("..%s/%s/training_data/train_%s/chart.png",
+					beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting"),
 					project.ProjectName, m.Taskid),
 				CreateTime: time.Now(),
 			}
