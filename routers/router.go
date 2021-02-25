@@ -34,6 +34,12 @@ func init() {
 			),
 		),
 
+		beego.NSNamespace("/qt_plugins",
+			beego.NSInclude(
+				&controllers.QtPluginsController{},
+			),
+		),
+
 		beego.NSNamespace("/qt_projects",
 			beego.NSInclude(
 				&controllers.QtProjectsController{},

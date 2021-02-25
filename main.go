@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/afero"
 	"os"
 	"qting-ai/models"
+	"qting-ai/plugins"
 	_ "qting-ai/routers"
 	"qting-ai/version"
 	"strings"
@@ -50,18 +51,22 @@ func LoggerInit(debug bool) {
 }
 
 func Start(state overseer.State) {
-	go models.WatchDir(beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/"))
-	go models.StartCron()
-	fs := afero.NewOsFs()
-	_ = fs.Remove("update")
-	version.PrintVersion()
 	LoggerInit(beego.AppConfig.DefaultBool("debug", false))
-
 	sqlConn, er := beego.AppConfig.String("sqlconn")
 	if er != nil {
 		logrus.Panic("读取数据库连接出错出错")
 	}
 	_ = orm.RegisterDataBase("default", "mysql", sqlConn)
+	fs := afero.NewOsFs()
+	_ = fs.Remove("update")
+	version.PrintVersion()
+
+	qTingFolder := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/")
+	go models.WatchDir(qTingFolder)
+	go models.StartCron()
+	go plugins.Watcher() // 监听插件目录
+
+
 	//if beego.BConfig.RunMode == "dev" {
 	//	beego.BConfig.WebConfig.DirectoryIndex = true
 	//	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
@@ -69,6 +74,7 @@ func Start(state overseer.State) {
 	beego.BConfig.WebConfig.DirectoryIndex = true
 	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
 	beego.BConfig.WebConfig.StaticDir["/manage"] = "manage"
+	beego.BConfig.WebConfig.StaticDir[beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting")] = qTingFolder
 	//InsertFilter是提供一个过滤函数
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		//允许访问所有源
