@@ -26,7 +26,9 @@ func Version(args ...interface{}) (ret interface{}, err error) {
 }
 
 // 插件通用的执行方法
-func Run(taskId string, modelPath string) (err error) {
+func Run(args ...interface{}) (err error) {
+	taskId := args[0].(string)
+	modelPath := args[1].(string)
 	temp := strings.Split(strings.ReplaceAll(modelPath, beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/"), ""), "/")
 	projectName := temp[0]
 	aiFrameworkName := temp[2]
