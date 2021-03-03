@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
+	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -319,7 +320,7 @@ func cronFunc() {
 							if output, err := cmd.CombinedOutput(); err == nil {
 								updateStatus(fs, statusFile, Training, TrainingInt, trainConfig.TaskId, string(output))
 							} else {
-								logrus.Error(cmdStr)
+								logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "训练出错" + cmdStr)))
 								logrus.WithField("out",  string(output)).Error(err.Error())
 							}
 							break
@@ -367,7 +368,7 @@ func cronFunc() {
 				}
 			}
 		} else {
-			logrus.Error("队列训练数据有误->需要处理执行出错")
+			logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "队列训练数据有误->需要处理执行出错")))
 			go GetMsg(true)
 		}
 	} else {

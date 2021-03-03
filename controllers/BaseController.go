@@ -2,8 +2,9 @@ package controllers
 
 import (
 	beego "github.com/beego/beego/v2/server/web"
+	jsontime "github.com/liamylian/jsontime/v2/v2"
 )
-
+var json = jsontime.ConfigWithCustomTimeFormat
 type BaseController struct {
 	beego.Controller
 }

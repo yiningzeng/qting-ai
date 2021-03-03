@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"qting-ai/models"
 	"strconv"
 	"strings"
 )
-
 // QtProjectsController operations for QtProjects
 type QtProjectsController struct {
 	BaseController
@@ -33,15 +31,13 @@ func (c *QtProjectsController) Post() {
 	var v models.QtProjects
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddQtProjects(&v); err == nil {
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.SuccessJson(v)
 		} else {
-			c.Data["json"] = err.Error()
+			c.ErrorJson(501,err.Error(),nil)
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.ErrorJson(501,err.Error(),nil)
 	}
-	_ = c.ServeJSON()
 }
 
 // GetOne ...
@@ -129,14 +125,13 @@ func (c *QtProjectsController) Put() {
 	v := models.QtProjects{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateQtProjectsById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.SuccessJson(v)
 		} else {
-			c.Data["json"] = err.Error()
+			c.ErrorJson(501,err.Error(),nil)
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.ErrorJson(501,err.Error(),nil)
 	}
-	c.ServeJSON()
 }
 
 // Delete ...
@@ -149,10 +144,5 @@ func (c *QtProjectsController) Put() {
 func (c *QtProjectsController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteQtProjects(id); err == nil {
-		c.Data["json"] = "OK"
-	} else {
-		c.Data["json"] = err.Error()
-	}
-	c.ServeJSON()
+	c.Ret(nil, models.DeleteQtProjects(id))
 }

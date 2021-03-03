@@ -52,7 +52,7 @@ class FreeFish extends React.Component {
             showAiPar: false,
             loading: false,
             doTrain: {
-                aiFrameworkId: undefined, // 框架id
+                aiFrameworkId: 1, // 框架id
                 taskId: undefined, // 项目id
                 taskName: undefined, // 训练任务名称
                 projectId: undefined, // 项目id
@@ -221,20 +221,19 @@ class FreeFish extends React.Component {
             return <div>
                 <Row>
                     <Button type="primary" size="small" style={{marginLeft: 10}}
-                            disabled={record.status !== 2} onClick={() => {
+                            disabled={record.Status !== 2} onClick={() => {
                         confirm({
                             title: '提示',
                             content: '确定要停止训练么?',
                             onOk: () => {
                                 const {dispatch} = this.props;
                                 dispatch({
-                                    type: 'service/stopTrain',
+                                    type: 'service/stopTrain_v1',
                                     payload: {
-                                        task_id: record.task_id,
-                                        project_name: record.project_name
+                                        TaskId: record.TaskId,
                                     },
                                     callback: (v) => {
-                                        if (v.res === "ok") {
+                                        if (v.Code === 200) {
                                             message.success("已经停止训练");
                                             dispatch({
                                                 type: 'service/getList_v1',
@@ -282,7 +281,7 @@ class FreeFish extends React.Component {
                         })
                     }}>预览图表</Button>
                     <Popconfirm
-                        disabled={record.status === 2 || record.status === 0 || record.status === 1}
+                        disabled={record.Status === 2 || record.Status === 0 || record.Status === 1}
                         title="只是删除记录，该记录训练的模型不会被删除，确定要删除么？"
                         onConfirm={() => {
                             const {dispatch} = this.props;
@@ -301,7 +300,7 @@ class FreeFish extends React.Component {
                         cancelText="取消"
                     >
                         <Button type="primary"
-                                disabled={record.status === 2 || record.status === 0 || record.status === 1} danger
+                                disabled={record.Status === 2 || record.Status === 0 || record.Status === 1} danger
                                 size="small" style={{marginLeft: 10}}>删除该记录</Button>
                     </Popconfirm>
                     {/*<Button type="primary" size="small" style={{marginLeft: 10}}>日志</Button>*/}
@@ -608,9 +607,9 @@ class FreeFish extends React.Component {
                                                                         doTrain: {
                                                                             ...this.state.train.doTrain,
                                                                             singleTrain: singleTrain,
-                                                                            aiFrameworkId: cc.Data !== null ? cc.Data[0].Id : undefined,
+                                                                            aiFrameworkId: cc.Data !== null ? cc.Data[0].Id : 1,
                                                                             mergeTrainSymbol: 0,
-                                                                            providerType: "QTing-tiny-3l-single",
+                                                                            providerType: cc.Data !== null ? cc.Data[0].FrameworkName : "QTing-tiny-3l-single",
                                                                         }
                                                                     }
                                                                 });
@@ -1016,7 +1015,7 @@ class FreeFish extends React.Component {
                         </Select>
                         使用的框架:
                         <Select style={{marginTop: "5px", marginBottom: "10px", width: "100%"}}
-                                value={this.state.train.doTrain.providerType}
+                                value={`${this.state.train.doTrain.aiFrameworkId}|${this.state.train.doTrain.providerType}`}
                                 onChange={(value) => {
                                     this.setState({
                                         ...this.state,

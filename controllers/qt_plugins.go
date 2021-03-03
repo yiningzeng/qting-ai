@@ -1,15 +1,12 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
+	beego "github.com/beego/beego/v2/server/web"
 	"qting-ai/models"
 	"strconv"
 	"strings"
-
-	beego "github.com/beego/beego/v2/server/web"
 )
-
 // QtPluginsController operations for QtPlugins
 type QtPluginsController struct {
 	beego.Controller

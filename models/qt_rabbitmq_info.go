@@ -15,7 +15,7 @@ type QtRabbitmqInfo struct {
 	RecordId   *QtTrainRecord `orm:"column(record_id);rel(fk)" description:"对应的train_record表的id"`
 	Queue      string         `orm:"column(queue);size(50);null" description:"对列名"`
 	Message    string         `orm:"column(message);null" description:"一次执行的队列信息"`
-	CreateTime time.Time      `orm:"column(create_time);type(datetime);null"`
+	CreateTime time.Time      `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtRabbitmqInfo) TableName() string {

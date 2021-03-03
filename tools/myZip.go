@@ -3,6 +3,7 @@ package tools
 import (
 	"archive/zip"
 	"fmt"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"io"
@@ -64,7 +65,7 @@ func Zip(dst, src string, taskId string, label string, width string, height stri
 				if err = afero.WriteFile(afero.NewOsFs(), "/tmp/" + fh.Name, []byte(res), 0755); err == nil {
 					path = "/tmp/" + fh.Name
 				} else {
-					logrus.Error(err)
+					logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "zip")))
 				}
 			}
 		}

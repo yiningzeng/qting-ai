@@ -33,8 +33,8 @@ type QtModels struct {
 1 表示已发布
 2 表示已下线"`
 	PublishUrl     string         `orm:"column(publish_url);size(255);null" description:"模型的发布地址"`
-	PublishTime time.Time `orm:"column(publish_time);type(datetime);null"`
-	CreateTime  time.Time `orm:"column(create_time);type(datetime);null"`
+	PublishTime time.Time `orm:"column(publish_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
+	CreateTime  time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 type OnlineModelPar struct {

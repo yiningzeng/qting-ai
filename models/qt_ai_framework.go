@@ -18,7 +18,7 @@ type QtAiFramework struct {
 	Volume      string    `orm:"column(volume);size(255)" description:"数据映射的镜像内部地址"`
 	Cfg      string    `orm:"column(cfg);size(255)" description:"对应的配置文件"`
 	Remarks       string    `orm:"column(remarks);size(100);null" description:"备注"`
-	CreateTime    time.Time `orm:"column(create_time);type(datetime);null"`
+	CreateTime    time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtAiFramework) TableName() string {

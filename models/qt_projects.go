@@ -3,11 +3,10 @@ package models
 import (
 	"errors"
 	"fmt"
+	"github.com/beego/beego/v2/client/orm"
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/beego/beego/v2/client/orm"
 )
 
 type QtProjects struct {
@@ -18,7 +17,7 @@ type QtProjects struct {
 	ImageHeight int              `orm:"column(image_height);null" description:"默认指的是发布时的图像高"`
 	Remarks     string           `orm:"column(remarks);size(100);null" description:"备注"`
 	Labels      []*QtLabels      `orm:"reverse(many)"` // 设置一对多的反向关系
-	CreateTime  time.Time        `orm:"column(create_time);type(datetime);null"`
+	CreateTime  time.Time        `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtProjects) TableName() string {

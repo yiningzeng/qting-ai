@@ -1,9 +1,10 @@
 package models
 
 import (
-	"errors"
+	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/fsnotify/fsnotify"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"os"
@@ -18,7 +19,7 @@ func WatchDir(dir string) (err error) {
 		watcher, err = fsnotify.NewWatcher()
 	}
 	if err != nil {
-		logrus.Error(err)
+		logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "监听文件夹出错")))
 		return err
 	}
 	//defer watcher.Close()

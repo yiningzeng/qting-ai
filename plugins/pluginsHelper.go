@@ -4,13 +4,13 @@ import (
 	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/fsnotify/fsnotify"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"os"
 	"path"
 	"path/filepath"
 	"plugin"
 	"qting-ai/models"
-	"time"
 )
 func AddPluginInfo(f string) {
 	if path.Ext(f) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
@@ -27,7 +27,7 @@ func Watcher() {
 	dir := beego.AppConfig.DefaultString("pluginDir", "./plugins")
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		logrus.Error(err)
+		logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "监听文件夹出错")))
 		return
 	}
 	err = watcher.Add(dir)
@@ -61,14 +61,7 @@ func Watcher() {
 					f := path.Base(ev.Name)
 					logrus.WithField("filename", f).Info("Rename")
 					if path.Ext(f) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
-						_ = models.UpdateQtPluginsByMV("QTing-tiny-3l", 10, &models.QtPlugins{
-							Module:      "QTing-tiny-3l",
-							VersionCode: 10,
-							Symbol:      "asdsd",
-							Args:        "asds",
-							PluginName:  "asds",
-							CreateTime:  time.Now(),
-						})
+						_ = models.UpdateQtPluginsByMV("QTing-tiny-3l", 10, f)
 						//if res, err := Run(f, "Version"); err == nil {
 						//	qtPlugin := res.(models.QtPlugins)
 						//	qtPlugin.PluginName = f
@@ -108,7 +101,7 @@ func Run(fileName string, symbol string, args ...interface{}) (ret interface{}, 
 	}
 	fn, ok := f.(func(...interface{}) (interface{}, error))
 	if ok == false {
-		logrus.Error("func type error: New.")
+		logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "func type error")))
 		logrus.WithFields(logrus.Fields{
 			"fileName": fileName,
 			"symbol": symbol,

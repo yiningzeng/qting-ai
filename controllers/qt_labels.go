@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"encoding/json"
 	"errors"
 	"qting-ai/models"
 	"strconv"
@@ -34,15 +33,13 @@ func (c *QtLabelsController) Post() {
 	var v models.QtLabels
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if _, err := models.AddQtLabels(&v); err == nil {
-			c.Ctx.Output.SetStatus(201)
-			c.Data["json"] = v
+			c.SuccessJson(v)
 		} else {
-			c.Data["json"] = err.Error()
+			c.ErrorJson(501,err.Error(),nil)
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.ErrorJson(501,err.Error(),nil)
 	}
-	c.ServeJSON()
 }
 
 // GetOne ...
@@ -141,14 +138,13 @@ func (c *QtLabelsController) Put() {
 	v := models.QtLabels{Id: id}
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err == nil {
 		if err := models.UpdateQtLabelsById(&v); err == nil {
-			c.Data["json"] = "OK"
+			c.SuccessJson(v)
 		} else {
-			c.Data["json"] = err.Error()
+			c.ErrorJson(501,err.Error(),nil)
 		}
 	} else {
-		c.Data["json"] = err.Error()
+		c.ErrorJson(501,err.Error(),nil)
 	}
-	c.ServeJSON()
 }
 
 // Delete ...
@@ -161,10 +157,5 @@ func (c *QtLabelsController) Put() {
 func (c *QtLabelsController) Delete() {
 	idStr := c.Ctx.Input.Param(":id")
 	id, _ := strconv.Atoi(idStr)
-	if err := models.DeleteQtLabels(id); err == nil {
-		c.Data["json"] = "OK"
-	} else {
-		c.Data["json"] = err.Error()
-	}
-	c.ServeJSON()
+	c.Ret(nil, models.DeleteQtLabels(id))
 }

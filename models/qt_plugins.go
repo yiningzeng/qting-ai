@@ -17,7 +17,7 @@ type QtPlugins struct {
 	Symbol      string    `orm:"column(symbol);size(50)" description:"入口函数"`
 	Args        string    `orm:"column(args);size(255);null" description:"参数说明"`
 	PluginName  string    `orm:"column(plugin_name);size(255)" description:"插件文件名"`
-	CreateTime  time.Time `orm:"column(create_time);type(datetime);null"`
+	CreateTime  time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtPlugins) TableName() string {
@@ -140,14 +140,14 @@ func UpdateQtPluginsById(m *QtPlugins) (err error) {
 	return
 }
 
-func UpdateQtPluginsByMV(module string, versionCode int, m *QtPlugins) (err error) {
+func UpdateQtPluginsByMV(module string, versionCode int, newFileName string) (err error) {
 	o := orm.NewOrm()
 	v := QtPlugins{Module: module, VersionCode: versionCode}
 	// ascertain id exists in the database
 	if err = o.Read(&v, "Module", "VersionCode"); err == nil {
 		var num int64
-		m.Id = v.Id
-		if num, err = o.Update(m); err == nil {
+		v.PluginName = newFileName
+		if num, err = o.Update(&v); err == nil {
 			fmt.Println("Number of records deleted in database:", num)
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/jpillora/overseer"
 	"github.com/jpillora/overseer/fetcher"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	jsontime "github.com/liamylian/jsontime/v2/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"os"
@@ -56,7 +57,10 @@ func Start(state overseer.State) {
 	if er != nil {
 		logrus.Panic("读取数据库连接出错出错")
 	}
-	_ = orm.RegisterDataBase("default", "mysql", sqlConn)
+	if err := orm.RegisterDataBase("default", "mysql", sqlConn); err != nil {
+		logrus.WithField("err", err).Panic("初始化数据库失败")
+	}
+
 	fs := afero.NewOsFs()
 	_ = fs.Remove("update")
 	version.PrintVersion()
@@ -91,12 +95,21 @@ func Start(state overseer.State) {
 		AllowOrigins: []string{"http://10.*.*.*:*","http://localhost:*","http://127.0.0.1:*"},
 	}))
 	if state.Enabled {
-		_ = afero.WriteFile(fs, "update-success", nil, 0755)
+		_ = fs.Remove("update-info")
+		_ = afero.WriteFile(fs, "update-success", []byte(time.Now().Format("2006-01-02 15:04:05")), 0755)
 	}
 	beego.Run()
 }
 
 func main() {
+	timeZoneShanghai, _ := time.LoadLocation("Asia/Shanghai")
+	jsontime.AddTimeFormatAlias("sql_datetime", "2006-01-02 15:04:05")
+	jsontime.AddLocaleAlias("shanghai", timeZoneShanghai)
+	//_, err := fsnotify.NewWatcher()
+	//if err != nil {
+	//	logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "")))
+	//}
+
 	mode := beego.AppConfig.DefaultString("runmode", "prod")
 	if strings.EqualFold("prod", mode) {
 		overseer.Run(overseer.Config{
@@ -107,6 +120,7 @@ func main() {
 					"编译日期":  version.BuildDate,
 				}).Info("已做好老版本备份，删除更新成功状态，开始执行更新")
 				fs := afero.NewOsFs()
+				_ = afero.WriteFile(fs, "update-info", []byte("已做好老版本备份，删除更新成功状态，开始执行更新"), 0755)
 				_ = fs.Remove("update-success")
 				if b, err := afero.ReadFile(fs, "qting-ai"); err == nil {
 					_ = afero.WriteFile(fs, "qting-ai(old)", b, 0755)

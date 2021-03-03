@@ -471,6 +471,121 @@ paths:
           description: '{int} models.QtModels'
         "403":
           description: body is empty
+  /qt_plugins/:
+    get:
+      tags:
+      - qt_plugins
+      description: get QtPlugins
+      operationId: QtPluginsController.Get All
+      parameters:
+      - in: query
+        name: query
+        description: Filter. e.g. col1:v1,col2:v2 ...
+        type: string
+      - in: query
+        name: fields
+        description: Fields returned. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: sortby
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      - in: query
+        name: order
+        description: Order corresponding to each sortby field, if single value, apply
+          to all sortby fields. e.g. desc,asc ...
+        type: string
+      - in: query
+        name: limit
+        description: Limit the size of result set. Must be an integer
+        type: string
+      - in: query
+        name: offset
+        description: Start position of result set. Must be an integer
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtPlugins'
+        "403":
+          description: ""
+    post:
+      tags:
+      - qt_plugins
+      description: create QtPlugins
+      operationId: QtPluginsController.Post
+      parameters:
+      - in: body
+        name: body
+        description: body for QtPlugins content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtPlugins'
+      responses:
+        "201":
+          description: '{int} models.QtPlugins'
+        "403":
+          description: body is empty
+  /qt_plugins/{id}:
+    get:
+      tags:
+      - qt_plugins
+      description: get QtPlugins by id
+      operationId: QtPluginsController.Get One
+      parameters:
+      - in: path
+        name: id
+        description: The key for staticblock
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtPlugins'
+        "403":
+          description: :id is empty
+    put:
+      tags:
+      - qt_plugins
+      description: update the QtPlugins
+      operationId: QtPluginsController.Put
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to update
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for QtPlugins content
+        required: true
+        schema:
+          $ref: '#/definitions/models.QtPlugins'
+      responses:
+        "200":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.QtPlugins'
+        "403":
+          description: :id is not int
+    delete:
+      tags:
+      - qt_plugins
+      description: delete the QtPlugins
+      operationId: QtPluginsController.Delete
+      parameters:
+      - in: path
+        name: id
+        description: The id you want to delete
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{string} delete success!'
+        "403":
+          description: id is empty
   /qt_projects/:
     get:
       tags:
@@ -852,6 +967,51 @@ paths:
           description: '{int} 监控成功'
         "403":
           description: body is empty
+  /tools/testPlugin:
+    get:
+      tags:
+      - tools
+      description: 获取程序的版本信息
+      operationId: ToolsController.GetVersion
+      parameters:
+      - in: query
+        name: module
+        description: module
+        type: string
+      - in: query
+        name: function
+        description: function
+        type: string
+      - in: query
+        name: args
+        description: Sorted-by fields. e.g. col1,col2 ...
+        type: string
+      responses:
+        "200":
+          description: 获取成功
+        "703":
+          description: 获取队列失败
+  /tools/update:
+    get:
+      tags:
+      - tools
+      description: 获取程序的更新信息
+      operationId: ToolsController.GetUpdateInfo
+      responses:
+        "200":
+          description: 获取成功
+        "703":
+          description: 获取队列失败
+    put:
+      tags:
+      - tools
+      description: 获取程序的更新信息
+      operationId: ToolsController.GetUpdateInfo
+      responses:
+        "200":
+          description: 获取成功
+        "703":
+          description: 获取队列失败
   /tools/version:
     get:
       tags:
@@ -1062,6 +1222,32 @@ definitions:
       TaskId:
         description: 主要是方便后期更新这个模型通过taskId来查询
         type: string
+  models.QtPlugins:
+    title: QtPlugins
+    type: object
+    properties:
+      Args:
+        description: 参数说明
+        type: string
+      CreateTime:
+        type: string
+        format: datetime
+      Id:
+        type: integer
+        format: int64
+      Module:
+        description: 插件模块
+        type: string
+      PluginName:
+        description: 插件文件名
+        type: string
+      Symbol:
+        description: 入口函数
+        type: string
+      VersionCode:
+        description: 插件版本
+        type: integer
+        format: int64
   models.QtProjects:
     title: QtProjects
     type: object
@@ -1159,6 +1345,9 @@ tags:
 - name: qt_models
   description: |
     QtModelsController operations for QtModels
+- name: qt_plugins
+  description: |
+    QtPluginsController operations for QtPlugins
 - name: qt_projects
   description: |
     QtProjectsController operations for QtProjects

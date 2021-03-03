@@ -28,7 +28,7 @@ type QtTrainRecord struct {
 0:正常
 1:插队"`
 	DrawUrl    string    `orm:"column(draw_url);size(255);null" description:"画图的网址"`
-	CreateTime time.Time `orm:"column(create_time);type(datetime);null"`
+	CreateTime time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtTrainRecord) TableName() string {
