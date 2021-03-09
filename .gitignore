@@ -16,3 +16,7 @@ qting-ai
 web/node_modules/
 
 web/dist/
+
+update-success
+
+*.yn
