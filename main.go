@@ -114,6 +114,7 @@ func main() {
 		overseer.Run(overseer.Config{
 			Program: Start,
 			PreUpgrade: func(tempBinaryPath string) error {
+				models.StopCron()
 				logrus.WithFields(logrus.Fields{
 					"老版本ID": version.ID,
 					"编译日期":  version.BuildDate,
