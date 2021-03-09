@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/sirupsen/logrus"
-	"qting-ai/models"
 	"qting-ai/tools"
 	"qting-ai/version"
 )
@@ -15,7 +14,6 @@ type ToolsController struct {
 // URLMapping ...
 func (c *ToolsController) URLMapping() {
 	c.Mapping("TestPlugin", c.TestPlugin)
-	c.Mapping("Put", c.FsnotifyAddWatch)
 	c.Mapping("GetVersion", c.GetVersion)
 	c.Mapping("GetUpdateInfo", c.GetUpdateInfo)
 	c.Mapping("PutUpdateInfo", c.PutUpdateInfo)
@@ -70,14 +68,3 @@ func (c *ToolsController) TestPlugin() {
 	//c.Ret(models.HotPluginRun(module, function, args))
 }
 
-// put ...
-// @Title Put
-// @Description create QtLabels
-// @Param	dir		path 	string	true		"需要监控的文件夹目录"
-// @Success 201 {int} 监控成功
-// @Failure 403 body is empty
-// @router /fsnotify/:dir [put]
-func (c *ToolsController) FsnotifyAddWatch() {
-	dir := c.Ctx.Input.Param(":dir")
-	c.Ret(nil, models.AddWatchDir(dir))
-}

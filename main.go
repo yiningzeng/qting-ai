@@ -65,8 +65,7 @@ func Start(state overseer.State) {
 	_ = fs.Remove("update")
 	version.PrintVersion()
 
-	qTingFolder := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/")
-	go models.WatchDir(qTingFolder)
+	//go models.WatchDir(qTingFolder)
 	go models.StartCron()
 	go plugins.Watcher() // 监听插件目录
 
@@ -78,7 +77,7 @@ func Start(state overseer.State) {
 	beego.BConfig.WebConfig.DirectoryIndex = true
 	beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
 	beego.BConfig.WebConfig.StaticDir["/manage"] = "manage"
-	beego.BConfig.WebConfig.StaticDir[beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting")] = qTingFolder
+	beego.BConfig.WebConfig.StaticDir[beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting")] = beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/")
 	//InsertFilter是提供一个过滤函数
 	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
 		//允许访问所有源

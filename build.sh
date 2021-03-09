@@ -28,4 +28,6 @@ while getopts "v:o:h" opt; do
       ;;
   esac
 done
+go build -buildmode=plugin -o plugins/QTing-tiny-3l-single.yn plugins/QTing-tiny-3l-single/main.go
+go build -buildmode=plugin -o plugins/QTing-tiny-3l-multilabel.yn plugins/QTing-tiny-3l-multilabel/main.go
 go build -ldflags  "-X \"qting-ai/version.BuildDate=$buildTime\" -X \"qting-ai/version.ID=$versionId\"" -o "$packageName"

@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
 	"os/exec"
+	"qting-ai/tools"
 	"strings"
 	"time"
 )
@@ -67,7 +68,7 @@ type AiTrain struct {
 	Isshuffle           bool      `json:"isshuffle"`
 }
 
-type QTingTiny3L struct {
+type TrainConfig struct {
 	ProjectId  int `yaml:"projectId"` // 训练中心使用 项目名
 	ProjectName string `yaml:"projectName"` // 训练中心使用 项目名
 	ProjectPath string `yaml:"projectPath"` // 训练中心使用 项目路径
@@ -172,7 +173,7 @@ var c = cron.New(cron.WithSeconds())
 func DoTrain(m *AiTrain) (err error) {
 	fs := afero.NewOsFs()
 	if b, err := afero.ReadFile(fs, "conf/" + m.Providertype + ".yaml"); err == nil {
-		var temp QTingTiny3L
+		var temp TrainConfig
 		if err = yaml.Unmarshal(b, &temp); err == nil {
 			// region 第一步 先查询相关数据 并更新数据
 			aiFramwork, err := GetQtAiFrameworkById(m.AiFrameworkId)
@@ -294,13 +295,11 @@ func updateStatus(fs afero.Fs, statusFile string, status string, statusCode int,
 			"taskId":     taskId,
 		}).Error(err.Error())
 	}
-
-
 }
 
 func cronFunc() {
 	if ok, msgBody := GetMsg(false); ok == true {
-		var trainConfig QTingTiny3L
+		var trainConfig TrainConfig
 		if err := yaml.Unmarshal(msgBody, &trainConfig); err == nil {
 			if data, err := yaml.Marshal(trainConfig); err == nil {
 				//logrus.Debug(string(data))
@@ -346,6 +345,10 @@ func cronFunc() {
 							break
 						case Done:
 							updateStatus(fs, statusFile, Done, DoneInt, trainConfig.TaskId, "")
+							// region 此处加载插件业务逻辑
+							pluginFileName := trainConfig.ProviderType + beego.AppConfig.DefaultString("pluginSuffix", ".yn")
+							_, err = tools.PluginRun(pluginFileName, "Run", trainConfig.TaskId, trainConfig.ProjectName, trainConfig.ProviderType)
+							// endregion
 							break
 						case Failed:
 							updateStatus(fs, statusFile, Failed, FailedInt, trainConfig.TaskId, "")

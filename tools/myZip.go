@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/afero"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -30,7 +31,7 @@ func Zip(dst, src string, taskId string, label string, width string, height stri
 	}()
 
 	// 下面来将文件写入 zw ，因为有可能会有很多个目录及文件，所以递归处理
-	return filepath.Walk(src, func(path string, fi os.FileInfo, errBack error) (err error) {
+	return filepath.Walk(src, func(p string, fi os.FileInfo, errBack error) (err error) {
 		if errBack != nil {
 			return errBack
 		}
@@ -43,18 +44,18 @@ func Zip(dst, src string, taskId string, label string, width string, height stri
 			return
 		}
 		// 替换文件信息中的文件名
-		fh.Name = filepath.Base(path)
-		if strings.Contains(fh.Name, ".weights") {
-			fh.Name	= strings.ReplaceAll(fh.Name, taskId, label)
-		} else if strings.Contains(fh.Name, ".names") {
-			fh.Name	= strings.ReplaceAll(fh.Name, taskId, "labels")
-		} else if strings.Contains(fh.Name, ".suggest") {
+		fh.Name = filepath.Base(p)
+		if path.Ext(fh.Name) == ".weights" {
+			fh.Name	= label + ".weights"
+		} else if path.Ext(fh.Name) == ".names" {
+			fh.Name	= "labels.names"
+		} else if path.Ext(fh.Name) == ".suggest" {
 			fh.Name	= "suggest_score.suggest"
-		} else if strings.Contains(fh.Name, ".modelInfo") {
+		} else if path.Ext(fh.Name) == ".modelInfo" {
 			fh.Name	= "model_info.txt"
-		} else if strings.Contains(fh.Name, ".cfg") {
-			fh.Name	= strings.ReplaceAll(fh.Name, taskId, label)
-			if bytes, err := afero.ReadFile(afero.NewOsFs(), path); err == nil {
+		} else if path.Ext(fh.Name) == ".cfg" {
+			fh.Name	= label + ".cfg"
+			if bytes, err := afero.ReadFile(afero.NewOsFs(), p); err == nil {
 				newWidth := fmt.Sprintf("width=%s #", width)
 				newHeight := fmt.Sprintf("height=%s #", height)
 				res := strings.Replace(string(bytes), "width=", newWidth, 1)
@@ -62,8 +63,8 @@ func Zip(dst, src string, taskId string, label string, width string, height stri
 
 				res = strings.Replace(res, "height=", newHeight, 1)
 				res = strings.Replace(res, "height =", newHeight, 1)
-				if err = afero.WriteFile(afero.NewOsFs(), "/tmp/" + fh.Name, []byte(res), 0755); err == nil {
-					path = "/tmp/" + fh.Name
+				if err = afero.WriteFile(afero.NewOsFs(), path.Join("/tmp/", fh.Name), []byte(res), 0755); err == nil {
+					p = path.Join("/tmp/", fh.Name)
 				} else {
 					logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "zip")))
 				}
@@ -86,7 +87,7 @@ func Zip(dst, src string, taskId string, label string, width string, height stri
 
 
 		// 打开要压缩的文件
-		fr, err := os.Open(path)
+		fr, err := os.Open(p)
 		defer fr.Close()
 		if err != nil {
 			return err
@@ -97,7 +98,7 @@ func Zip(dst, src string, taskId string, label string, width string, height stri
 			return err
 		}
 		// 输出压缩的内容
-		logrus.Info("成功压缩文件： %s, 共写入了 %d 个字符的数据\n", path, n)
+		logrus.Info(fmt.Sprintf("成功压缩文件： %s, 共写入了 %d 个字符的数据\n", p, n))
 		return nil
 	})
 }

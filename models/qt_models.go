@@ -6,6 +6,7 @@ import (
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/spf13/afero"
+	"path"
 	"qting-ai/tools"
 	"reflect"
 	"strconv"
@@ -20,6 +21,7 @@ type QtModels struct {
 	AiFrameworkId *QtAiFramework `orm:"column(ai_framework_id);rel(fk);null" description:"训练使用的框架ID"`
 	ModelName     string         `orm:"column(model_name);size(100);null" description:"模型名称"`
 	ModelPath     string         `orm:"column(model_path);size(255);null" description:"模型的本地路径"`
+	ModelBasePath string         `orm:"column(model_base_path);size(255);null" description:"模型的保存目录"`
 	IsMultilabel int `orm:"column(is_multilabel);null" description:"该模型是否包含多标签
 该模型是否包含多标签
 -1 表示未知
@@ -32,7 +34,7 @@ type QtModels struct {
 0 表示未发布
 1 表示已发布
 2 表示已下线"`
-	PublishUrl     string         `orm:"column(publish_url);size(255);null" description:"模型的发布地址"`
+	PublishUrl  string    `orm:"column(publish_url);size(255);null" description:"模型的发布地址"`
 	PublishTime time.Time `orm:"column(publish_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 	CreateTime  time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
@@ -67,7 +69,6 @@ func OnlineModel(m *OnlineModelPar) (err error) {
 			_ = UpdateQtModelsById(oldQtModel)
 		}
 		// region 打包发布
-		basePath := strings.ReplaceAll(qTModel.ModelPath, qTModel.TaskId + ".weights", "")
 		zipFile := ""
 		label := ""
 		assetPath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/")
@@ -84,17 +85,17 @@ func OnlineModel(m *OnlineModelPar) (err error) {
 			zipFile = fmt.Sprintf("%s/model_release/allLabels.zip",assetPath)
 		}
 		_ = afero.WriteFile(afero.NewOsFs(),
-			basePath + qTModel.TaskId + ".modelInfo",
+			  path.Join(qTModel.ModelBasePath, qTModel.TaskId + ".modelInfo"),
 			[]byte(fmt.Sprintf("项目名称: %s\n模型名称: %s\n发布日期: %s\n", qTModel.ProjectId.ProjectName, qTModel.ModelName, qTModel.PublishTime)),
 			0755)
-		err := tools.Zip(zipFile, basePath, qTModel.TaskId, label, strconv.Itoa(m.ModelWidth), strconv.Itoa(m.ModelHeight))
+		err := tools.Zip(zipFile, qTModel.ModelBasePath, qTModel.TaskId, label, strconv.Itoa(m.ModelWidth), strconv.Itoa(m.ModelHeight))
 		if err != nil {
 			return err
 		}
 		// endregion
 		qTModel.PublishUrl = strings.ReplaceAll(zipFile,
 			beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/"),
-			".." + beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting"))
+			beego.AppConfig.DefaultString("DownloadHost", "http://localhost:8080") + beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting")+"/")
 		err = UpdateQtModelsById(qTModel)
 		return nil
 	} else {

@@ -9,14 +9,15 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"plugin"
 	"qting-ai/models"
+	"qting-ai/tools"
 )
-func AddPluginInfo(f string) {
-	if path.Ext(f) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
-		if res, err := Run(f, "Version", f); err == nil {
+
+func AddPluginInfo(fileName string) {
+	if path.Ext(fileName) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
+		if res, err := tools.PluginRun(fileName, "Version", fileName); err == nil {
 			qtPlugin := res.(models.QtPlugins)
-			qtPlugin.PluginName = f
+			qtPlugin.PluginName = fileName
 			_, _ = models.AddQtPlugins(&qtPlugin)
 		} else {
 			logrus.Info(err)
@@ -57,19 +58,6 @@ func Watcher() {
 					if path.Ext(f) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
 						_ = models.DeleteQtPluginsByFileName(f)
 					}
-				} else if ev.Op&fsnotify.Rename == fsnotify.Rename {
-					f := path.Base(ev.Name)
-					logrus.WithField("filename", f).Info("Rename")
-					if path.Ext(f) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
-						_ = models.UpdateQtPluginsByMV("QTing-tiny-3l", 10, f)
-						//if res, err := Run(f, "Version"); err == nil {
-						//	qtPlugin := res.(models.QtPlugins)
-						//	qtPlugin.PluginName = f
-						//	_ = models.UpdateQtPluginsByMV(qtPlugin.Module, qtPlugin.VersionCode, &qtPlugin)
-						//} else {
-						//	logrus.Info(err)
-						//}
-					}
 				}
 			case err, ok := <-watcher.Errors:
 				if !ok {
@@ -81,34 +69,3 @@ func Watcher() {
 	}()
 	<-done
 }
-
-func Run(fileName string, symbol string, args ...interface{}) (ret interface{}, err error) {
-	p, err := plugin.Open(fmt.Sprintf("%s/%s", beego.AppConfig.DefaultString("pluginDir", "./plugins"), fileName))
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"fileName": fileName,
-			"symbol": symbol,
-		}).Error(err)
-		return nil, err
-	}
-	f, err := p.Lookup(symbol)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"fileName": fileName,
-			"symbol": symbol,
-		}).Error(err)
-		return nil, err
-	}
-	fn, ok := f.(func(...interface{}) (interface{}, error))
-	if ok == false {
-		logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "func type error")))
-		logrus.WithFields(logrus.Fields{
-			"fileName": fileName,
-			"symbol": symbol,
-		}).Error(err)
-		return nil, err
-	}
-	//New 返回空接口
-	return fn(args...)
-}
-
