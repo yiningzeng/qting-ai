@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Iframe from 'react-iframe';
-import { SettingOutlined, SmileTwoTone, CloudUploadOutlined } from '@ant-design/icons';
+import { SettingOutlined, SmileTwoTone, CloudUploadOutlined, PlusOutlined } from '@ant-design/icons';
 import '@ant-design/compatible/assets/index.css';
 import dva, { connect } from 'dva';
 import {InputNumber, Tabs, Tag, Row, Modal, Spin, Col, Popover, Tooltip, Collapse, Table, message, PageHeader, Button, Typography, Drawer, Divider, Select, Switch, Input, notification, Radio, Badge, Popconfirm, Image, Form, Empty} from 'antd';
@@ -49,6 +49,7 @@ class FreeFish extends React.Component {
             port: localStorage.getItem("api.port") === null ? 8080 : localStorage.getItem("api.port"),
         },
         train: {
+            addLabel: undefined,
             showAiPar: false,
             loading: false,
             doTrain: {
@@ -974,39 +975,102 @@ class FreeFish extends React.Component {
                             <Option value="coco">coco</Option>
                             <Option value="other">other</Option>
                         </Select>
-                        是否开启多标签单模型训练:&nbsp;&nbsp;
-                        <Switch checkedChildren="开启" unCheckedChildren="关闭"
-                                checked={this.state.train.doTrain.mergeTrainSymbol === 1}
-                                onChange={(c) => {
-                                    this.setState({
-                                        ...this.state,
-                                        train: {
-                                            ...this.state.train,
-                                            doTrain: {
-                                                ...this.state.train.doTrain,
-                                                mergeTrainSymbol: c ? 1 : 0,
-                                                singleTrain: c ? [] : this.state.train.doTrain.singleTrain,
-                                                providerType: c ? "QTing-tiny-3l-multilabel" : "QTing-tiny-3l-single",
-                                            }
-                                        }
-                                    })
-                                }}/><br/>
+                        {/*是否开启多标签单模型训练:&nbsp;&nbsp;*/}
+                        {/*<Switch checkedChildren="开启" unCheckedChildren="关闭"*/}
+                        {/*        checked={this.state.train.doTrain.mergeTrainSymbol === 1}*/}
+                        {/*        onChange={(c) => {*/}
+                        {/*            this.setState({*/}
+                        {/*                ...this.state,*/}
+                        {/*                train: {*/}
+                        {/*                    ...this.state.train,*/}
+                        {/*                    doTrain: {*/}
+                        {/*                        ...this.state.train.doTrain,*/}
+                        {/*                        mergeTrainSymbol: c ? 1 : 0,*/}
+                        {/*                        singleTrain: c ? [] : this.state.train.doTrain.singleTrain,*/}
+                        {/*                        providerType: c ? "QTing-tiny-3l-multilabel" : "QTing-tiny-3l-single",*/}
+                        {/*                    }*/}
+                        {/*                }*/}
+                        {/*            })*/}
+                        {/*        }}/><br/>*/}
                         训练的缺陷标签(留空也表示全部标签训练):
                         <Select disabled={this.state.train.doTrain.mergeTrainSymbol === 1}
                                 style={{marginTop: "5px", marginBottom: "10px", width: "100%"}}
                                 allowClear
                                 value={this.state.train.doTrain.singleTrain}
-                                mode="multiple" placeholder="留空也表示全部标签训练" onChange={(value) => this.setState({
-                            train: {
-                                ...this.state.train,
-                                doTrain: {
-                                    ...this.state.train.doTrain,
-                                    singleTrain: value,
-                                    mergeTrainSymbol: 0,
-                                    providerType: "QTing-tiny-3l-single",
-                                }
-                            }
-                        })}>
+                                mode="multiple" placeholder="留空也表示全部标签训练"
+                                onChange={(value) => this.setState({train: {
+                                        ...this.state.train,
+                                        doTrain: {
+                                            ...this.state.train.doTrain,
+                                            singleTrain: value,
+                                            mergeTrainSymbol: 0,
+                                            providerType: "QTing-tiny-3l-single",
+                                        }
+                                    }
+                                })}
+                                dropdownRender={menu => (
+                                    <div>
+                                        {menu}
+                                        <Divider style={{ margin: '4px 0' }} />
+                                        <div style={{ display: 'flex', flexWrap: 'nowrap', padding: 8 }}>
+                                            <Input style={{ flex: 'auto' }} value={this.state.train.addLabel} onChange={(e)=> this.setState({
+                                                ...this.state,
+                                                train: {
+                                                    ...this.state.train,
+                                                    addLabel: e.target.value,
+                                                }
+                                            })} />
+                                            <a
+                                                style={{ flex: 'none', padding: '8px', display: 'block', cursor: 'pointer' }}
+                                                onClick={()=>{
+                                                    const {dispatch} = this.props;
+                                                    dispatch({
+                                                            type: 'service/addLabels_v1',
+                                                            payload: {
+                                                                LabelName: this.state.train.addLabel,
+                                                                ProjectId: {
+                                                                    Id: this.state.train.doTrain.projectId,
+                                                                    ProjectName: "",
+                                                                },
+                                                                CreateTime: moment().format("YYYY-MM-DD HH:mm:ss")
+                                                            },
+                                                            callback: (v) => {
+                                                                if (v.Code === 200) {
+                                                                    dispatch({
+                                                                        type: 'service/getLabels_v1',
+                                                                        payload: {
+                                                                            query: encodeURI(`ProjectId:${this.state.train.doTrain.projectId}`),
+                                                                            limit: 1000,
+                                                                        },
+                                                                        callback: (bb) => {
+                                                                            const singleTrain = [];
+                                                                            if (bb.Data !== null) {
+                                                                                bb.Data.map(v => {
+                                                                                    singleTrain.push(v.LabelName);
+                                                                                });
+                                                                            }
+                                                                            this.setState({
+                                                                                ...this.state,
+                                                                                train: {
+                                                                                    ...this.state.train,
+                                                                                    addLabel: undefined,
+                                                                                    doTrain: {
+                                                                                        ...this.state.train.doTrain,
+                                                                                        singleTrain: singleTrain,
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+                                                        });
+                                                }}
+                                            >
+                                                <PlusOutlined /> 新增标签
+                                            </a>
+                                        </div>
+                                    </div>)}>
                             {
                                 this.props.service.Labels.Data !== null && this.props.service.Labels.Data.map(d => (
                                     <Option key={d.LabelName}>{d.LabelName}</Option>
@@ -1031,7 +1095,9 @@ class FreeFish extends React.Component {
                                 }}>
                             {
                                 this.props.service.AiFrameworks.Data.map(d => (
-                                    <Option key={`${d.Id}|${d.FrameworkName}`}>{d.FrameworkName}</Option>
+                                    <Option key={`${d.Id}|${d.FrameworkName}`}>
+                                        <Text>{d.FrameworkName}<Text type="secondary"> {d.Remarks}</Text></Text>
+                                    </Option>
                                 ))
                             }
                             {/*<Option value="QTing-tiny-3l-single">QTing-tiny-3l-single</Option>*/}

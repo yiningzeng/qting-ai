@@ -3,6 +3,7 @@ import {
     delRecord_v1,
     getAiFramework_v1,
     getLabels_v1,
+    addLabels_v1,
     getList_v1,
     getModelsByLabelsAndMulti_v1,
     getProjects_v1, onlineModel_v1, postTrain_v1,
@@ -113,6 +114,10 @@ const effects = {
             type: 'Labels',
             payload: response,
         });
+        if (callback) callback(response);
+    },
+    * addLabels_v1({payload, callback}, {call, put}) {
+        const response = yield call(addLabels_v1, payload);
         if (callback) callback(response);
     },
     * getAiFramework_v1({payload, callback}, {call, put}) {

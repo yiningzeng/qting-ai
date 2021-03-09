@@ -3,8 +3,8 @@ import { stringify } from 'qs';
 
 // const ip="192.168.31.75:8080";//"10.50.102.166";
 // const ip = `${localStorage.getItem("api.url") === null?"localhost":localStorage.getItem("api.url")}:${localStorage.getItem("api.port") === null?8080:localStorage.getItem("api.port")}`;
-// const urlPrefix = "..";
-const urlPrefix = "http://localhost:8080";
+const urlPrefix = "..";
+// const urlPrefix = "http://localhost:8080";
 // region v1 新的接口
 export async function getVersion_v1() {
     return request(`${urlPrefix}/v1/tools/version`, {
@@ -25,6 +25,12 @@ export async function getProjects_v1() {
 export async function getLabels_v1(params) {
     return request(`${urlPrefix}/v1/qt_labels/?${stringify(params)}`, {
         method: 'GET',
+    });
+}
+export async function addLabels_v1(params) {
+    return request(`${urlPrefix}/v1/qt_labels/`, {
+        method: 'POST',
+        body: params
     });
 }
 export async function getAiFramework_v1(params) {
