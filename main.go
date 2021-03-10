@@ -67,7 +67,7 @@ func Start(state overseer.State) {
 
 	//go models.WatchDir(qTingFolder)
 	go models.StartCron()
-	go plugins.Watcher() // 监听插件目录
+	go plugins.StartWatcher() // 监听插件目录
 
 
 	//if beego.BConfig.RunMode == "dev" {
@@ -115,6 +115,7 @@ func main() {
 			Program: Start,
 			PreUpgrade: func(tempBinaryPath string) error {
 				models.StopCron()
+				plugins.StopWatcher() // 监听插件目录
 				logrus.WithFields(logrus.Fields{
 					"老版本ID": version.ID,
 					"编译日期":  version.BuildDate,

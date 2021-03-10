@@ -12,7 +12,7 @@ import (
 	"qting-ai/models"
 	"qting-ai/tools"
 )
-
+var Watcher *fsnotify.Watcher
 func AddPluginInfo(fileName string) {
 	if path.Ext(fileName) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
 		if res, err := tools.PluginRun(fileName, "Version", fileName); err == nil {
@@ -24,7 +24,7 @@ func AddPluginInfo(fileName string) {
 		}
 	}
 }
-func Watcher() {
+func StartWatcher() {
 	dir := beego.AppConfig.DefaultString("pluginDir", "./plugins")
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -68,4 +68,8 @@ func Watcher() {
 		}
 	}()
 	<-done
+}
+
+func StopWatcher() {
+	Watcher.Close()
 }
