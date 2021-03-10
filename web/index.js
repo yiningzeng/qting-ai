@@ -1092,6 +1092,7 @@ class FreeFish extends React.Component {
                                                 ...this.state.train.doTrain,
                                                 aiFrameworkId: Number(value.toString().split('|')[0]),
                                                 providerType: value.toString().split('|')[1],
+                                                mergeTrainSymbol: value.toString().split('|')[1] === "QTing-tiny-3l-multilabel" ? 1 : 0,
                                             }
                                         }
                                     });
