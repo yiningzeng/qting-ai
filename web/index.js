@@ -392,8 +392,8 @@ class FreeFish extends React.Component {
                             title: '发布日期',
                             render: (text, record) => {
                                 if (record.Status === 2) return <Tag icon={<CloudUploadOutlined/>}
-                                                                     color="success">{record.PublishTime}</Tag>;
-                                else return record.PublishTime === "0001-01-01T00:00:00Z" ? "" : record.PublishTime;
+                                                                     color="success">{record.PublishTime.toString().replace("T", " ").replace("+08:00", "")}</Tag>;
+                                else return record.PublishTime === "0001-01-01T00:00:00Z" ? "" : record.PublishTime.toString().replace("T", " ").replace("+08:00", "");
                             }
                         }, {
                             title: '操作',
@@ -664,6 +664,9 @@ class FreeFish extends React.Component {
                                 }, {
                                     title: '创建时间',
                                     dataIndex: 'CreateTime',
+                                    render: v => {
+                                        return v.toString().replace("T", " ").replace("+08:00", "");
+                                    }
                                 }, {
                                     title: '状态',
                                     dataIndex: 'Status',
@@ -1948,8 +1951,8 @@ class FreeFish extends React.Component {
                                             title: '发布日期',
                                             render: (text, record) => {
                                                 if (record.Status === 2) return <Tag icon={<CloudUploadOutlined/>}
-                                                                                     color="success">{record.PublishTime}</Tag>;
-                                                else return record.PublishTime === "0001-01-01T00:00:00Z" ? "" : record.PublishTime;
+                                                                                     color="success">{record.PublishTime.toString().replace("T", " ").replace("+08:00", "")}</Tag>;
+                                                else return record.PublishTime === "0001-01-01T00:00:00Z" ? "" : record.PublishTimetoString().replace("T", " ").replace("+08:00", "");
                                             }
                                         }, {
                                             title: '操作',
