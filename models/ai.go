@@ -312,7 +312,7 @@ func cronFunc() {
 						//logrus.Debug(string(byteStatus))
 						switch strings.ReplaceAll(strings.ReplaceAll(string(byteStatus), "\n", ""), " ", "") {
 						case Waiting:
-							cmdStr := fmt.Sprintf("%s --name 'qtingTrain-%s' -v /etc/localtime:/etc/localtime:ro -v %s:%s %s",
+							cmdStr := fmt.Sprintf("%s --name 'qtingTrain-%s' -v /etc/localtime:/etc/localtime:ro -v '%s':'%s' %s",
 								beego.AppConfig.DefaultString("dockerRunPrefix", "docker run --shm-size 32G --memory-swap -1 --gpus all --rm -d"),
 								trainConfig.TaskId, trainConfig.ProjectPath, trainConfig.Volume, trainConfig.Image)
 							cmd := exec.Command("bash", "-c", cmdStr)
