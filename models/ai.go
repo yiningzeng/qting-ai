@@ -263,7 +263,13 @@ func StopTrain(taskId string, status string, statusCode int) (err error) {
 		savePath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/") + data.ProjectId.ProjectName + "/training_data/"
 		fs := afero.NewOsFs()
 		statusFile := fmt.Sprintf("%s/train_status_%s.log", savePath, taskId)
-		updateStatus(fs, statusFile, status, statusCode, taskId, "")
+		cmd := exec.Command("bash", "-c", fmt.Sprintf("docker stop 'qtingTrain-%s'", taskId))
+		_, err := cmd.CombinedOutput()
+		if err == nil {
+			updateStatus(fs, statusFile, status, statusCode, taskId, "")
+		} else {
+			return err
+		}
 	}
 	return err
 }
@@ -276,7 +282,7 @@ func updateStatus(fs afero.Fs, statusFile string, status string, statusCode int,
 			data.ContainerId = dockerId
 			if err = UpdateQtTrainRecordById(data); err == nil {
 				if statusCode == StoppedInt || statusCode == DoneInt || statusCode == FailedInt || statusCode == UnknownInt {
-					go GetMsg(true)
+					GetMsg(true)
 				}
 			} else {
 				logrus.WithField("errType", "更新记录状态出错").Error(err.Error())
@@ -319,8 +325,8 @@ func cronFunc() {
 							if output, err := cmd.CombinedOutput(); err == nil {
 								updateStatus(fs, statusFile, Training, TrainingInt, trainConfig.TaskId, string(output))
 							} else {
-								logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "训练出错" + cmdStr)))
-								logrus.WithField("out",  string(output)).Error(err.Error())
+								logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "训练出错"+cmdStr)))
+								logrus.WithField("out", string(output)).Error(err.Error())
 							}
 							break
 						case Training:
@@ -330,7 +336,7 @@ func cronFunc() {
 							if err != nil {
 								if strings.Contains(err.Error(), "exit status 1") {
 									logrus.WithFields(logrus.Fields{
-										"cmd": cmd,
+										"cmd":    cmd,
 										"output": string(output),
 									}).Info("正在训练 > 未查询到正在运行的训练容器")
 									if len(string(output)) < 10 {
@@ -361,10 +367,14 @@ func cronFunc() {
 							break
 						}
 					} else { // 状态文件不存在
+						logrus.WithField("taskId", trainConfig.TaskId).Info("开始训练")
 						if err = fs.MkdirAll(savePath, 0755); err == nil {
-							if err = afero.WriteFile(fs, savePath+"config.yaml", data, 0755); err == nil {
-								_ = afero.WriteFile(fs, statusFile, []byte(Waiting), 0755)
+
+							if err = afero.WriteFile(fs, statusFile, []byte(Waiting), 0755); err == nil {
+								err = afero.WriteFile(fs, savePath+"config.yaml", data, 0755)
 								//go tools.GetMsg(true)
+							} else {
+								logrus.WithField("taskId", trainConfig.TaskId).Error("训练失败")
 							}
 						}
 					}
@@ -372,7 +382,7 @@ func cronFunc() {
 			}
 		} else {
 			logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "队列训练数据有误->需要处理执行出错")))
-			go GetMsg(true)
+			GetMsg(true)
 		}
 	} else {
 		//logrus.Debug("队列空数据")

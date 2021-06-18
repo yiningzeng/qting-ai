@@ -72,10 +72,11 @@ class FreeFish extends React.Component {
                 angle: 360,
                 cell_stride: 1, //正平移步长
                 cellsize: 16, //平移框大小
+                learnratestepsratio: [0.9, 0.95], //#学习率调整步数比
                 expand_size: [8, 8], //扩展尺寸
                 ignore_size: [6, 6],//忽略尺寸
                 resizearrange: [0.4, 1.2], // anchor  调整变化幅度
-                trainwithnolabelpic: 1000, //最大负样本数
+                trainwithnolabelpic: 50000, //最大负样本数
 
                 subdivisionssize: 2,
                 rmgeneratedata: 0, // 是否保留训练生成的临时数据
@@ -1316,7 +1317,7 @@ class FreeFish extends React.Component {
                                              step={1}
                                              min={0}
                                              onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 1000;
+                                                 if (value === "" || value === null || value === undefined) value = 50000;
                                                  this.setState({
                                                      ...this.state,
                                                      train: {
@@ -1386,7 +1387,57 @@ class FreeFish extends React.Component {
                                                  })
                                              }}/>
 
-
+                                学习率调整步数比:
+                                <Input.Group compact>
+                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
+                                                 placeholder={this.state.train.doTrain.learnratestepsratio[0]}
+                                                 precision={2}
+                                                 step={0.01}
+                                                 min={0}
+                                                 onChange={(value) => {
+                                                     if (value === "" || value === null || value === undefined) value = 0.9;
+                                                     this.setState({
+                                                         ...this.state,
+                                                         train: {
+                                                             ...this.state.train,
+                                                             doTrain: {
+                                                                 ...this.state.train.doTrain,
+                                                                 learnratestepsratio: [value, this.state.train.doTrain.learnratestepsratio[1]],
+                                                             },
+                                                         }
+                                                     })
+                                                 }}/>
+                                    <Input
+                                        className="site-input-split"
+                                        style={{
+                                            width: '8%',
+                                            borderLeft: 0,
+                                            borderRight: 0,
+                                            pointerEvents: 'none',
+                                            textAlign: 'center'
+                                        }}
+                                        placeholder="~"
+                                        disabled
+                                    />
+                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
+                                                 placeholder={this.state.train.doTrain.learnratestepsratio[1]}
+                                                 precision={2}
+                                                 step={0.01}
+                                                 min={0}
+                                                 onChange={(value) => {
+                                                     if (value === "" || value === null || value === undefined) value = 0.95;
+                                                     this.setState({
+                                                         ...this.state,
+                                                         train: {
+                                                             ...this.state.train,
+                                                             doTrain: {
+                                                                 ...this.state.train.doTrain,
+                                                                 learnratestepsratio: [this.state.train.doTrain.learnratestepsratio[0], value],
+                                                             },
+                                                         }
+                                                     })
+                                                 }}/>
+                                </Input.Group>
                                 扩展尺寸:
                                 <Input.Group compact>
                                     <InputNumber style={{width: '46%', textAlign: 'center'}}
