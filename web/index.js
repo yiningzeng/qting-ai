@@ -17,10 +17,13 @@ const { confirm } = Modal;
 const { TabPane } = Tabs;
 import ModalAiFramework from "./components/modals/modalAiFramework";
 import Models from "./services/models";
+import AIForm from "./components/forms/aiForm";
 /**
  *
  */
+
 class FreeFish extends React.Component {
+    aiParsformRef: React.RefObject<AIForm> = React.createRef();
     modalAiFramework: React.RefObject<ModalAiFramework> = React.createRef();
     state = {
         version: {
@@ -219,6 +222,7 @@ class FreeFish extends React.Component {
     };
 
     render() {
+        //
         const expandedRowRender = (record) => {
             return <div>
                 <Row>
@@ -897,6 +901,10 @@ class FreeFish extends React.Component {
                         onClose={() => {
                             this.setState({
                                 rightVisible: false,
+                                train: {
+                                    ...this.state.train,
+                                    showAiPar: false,
+                                }
                             });
                         }}
                         visible={this.state.rightVisible}
@@ -1085,10 +1093,12 @@ class FreeFish extends React.Component {
                         <Select style={{marginTop: "5px", marginBottom: "10px", width: "100%"}}
                                 value={`${this.state.train.doTrain.aiFrameworkId}|${this.state.train.doTrain.providerType}`}
                                 onChange={(value) => {
+                                    this.aiParsformRef.current.closeAiPars();
                                     this.setState({
                                         ...this.state,
                                         train: {
                                             ...this.state.train,
+                                            showAiPar: false,
                                             doTrain: {
                                                 ...this.state.train.doTrain,
                                                 aiFrameworkId: Number(value.toString().split('|')[0]),
@@ -1111,586 +1121,23 @@ class FreeFish extends React.Component {
                         {// region 专业人员操作
                         }
                         AI参数(选填)-专业人员操作:&nbsp;&nbsp;
-                        <Switch checkedChildren="已打开调参" unCheckedChildren="已关闭调参"
+                        <Switch checked={this.state.train.showAiPar} checkedChildren="已打开调参" unCheckedChildren="已关闭调参"
                                 onChange={(c) => {
+                                    const item = this.props.service.AiFrameworks.Data.filter(v=>v.Id == this.state.train.doTrain.aiFrameworkId)[0];
                                     this.setState({
                                         ...this.state,
                                         train: {
                                             ...this.state.train,
                                             showAiPar: c,
                                         }
-                                    })
+                                    });
+                                    if (c){
+                                        this.aiParsformRef.current.loadAiPars(item?JSON.parse(item.ParsJson):[]);
+                                    }else{
+                                        this.aiParsformRef.current.closeAiPars();
+                                    }
                                 }}/>
-                        {
-                            this.state.train.showAiPar && <div>
-                                学习率:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.learnrate}
-                                             precision={6}
-                                             step={0.00001}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 0.00261;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             learnrate: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                检出率基数:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.recalldatum}
-                                             precision={2}
-                                             step={0.1}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 2;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             recalldatum: value,
-                                                         },
-                                                     }
-                                                 }, () => {
-                                                     console.log(`ducker do train: callback ${this.state.train.doTrain.recalldatum}`);
-                                                 })
-                                             }}/>
-                                非当前标签图片训练方式:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.otherlabeltraintype}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 1;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             otherlabeltraintype: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                每次训练所选取的样本数:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.batchSize}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 64;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             batchSize: value,
-                                                         },
-                                                     }
-                                                 }, () => {
-                                                     console.log(`ducker do train: callback ${this.state.train.doTrain.batchSize}`);
-                                                 })
-                                             }}/>
-                                GPU训练分批批次:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.subdivisionssize}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 16;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             subdivisionssize: value,
-                                                         },
-                                                     }
-                                                 }, () => {
-                                                     console.log(`ducker do train: callback ${this.state.train.doTrain.subdivisionssize}`);
-                                                 })
-                                             }}/>
-                                图像宽高:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={"默认自适应图像宽高"}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined || value === -1) {
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 imageWidth: -1,
-                                                                 imageHeight: -1,
-                                                             },
-                                                         }
-                                                     });
-                                                     return;
-                                                 } else {
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 imageWidth: value,
-                                                                 imageHeight: value,
-                                                             },
-                                                         }
-                                                     });
-                                                 }
-                                             }}/>
-                                图像随机旋转角度范围:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.angle}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 360;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             angle: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                训练样本占比:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.split_ratio}
-                                             precision={2}
-                                             step={0.01}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 0.95;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             split_ratio: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                训练最大轮数:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={"默认自适应训练轮数"}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined || value === -1) value = -1;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             maxIter: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                最大负样本数:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.trainwithnolabelpic}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 50000;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             trainwithnolabelpic: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                正样本平移增强步长:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.cell_stride}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 1;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             cell_stride: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                负样本平移增强步长:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.otherlabelstride}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 1;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             otherlabelstride: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-                                平移框大小:
-                                <InputNumber style={{width: '100%'}}
-                                             placeholder={this.state.train.doTrain.cellsize}
-                                             precision={0}
-                                             step={1}
-                                             min={0}
-                                             onChange={(value) => {
-                                                 if (value === "" || value === null || value === undefined) value = 16;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             cellsize: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}/>
-
-                                学习率调整步数比:
-                                <Input.Group compact>
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.learnratestepsratio[0]}
-                                                 precision={2}
-                                                 step={0.01}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 0.9;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 learnratestepsratio: [value, this.state.train.doTrain.learnratestepsratio[1]],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                    <Input
-                                        className="site-input-split"
-                                        style={{
-                                            width: '8%',
-                                            borderLeft: 0,
-                                            borderRight: 0,
-                                            pointerEvents: 'none',
-                                            textAlign: 'center'
-                                        }}
-                                        placeholder="~"
-                                        disabled
-                                    />
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.learnratestepsratio[1]}
-                                                 precision={2}
-                                                 step={0.01}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 0.95;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 learnratestepsratio: [this.state.train.doTrain.learnratestepsratio[0], value],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                </Input.Group>
-                                扩展尺寸:
-                                <Input.Group compact>
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.expand_size[0]}
-                                                 precision={0}
-                                                 step={1}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 8;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 expand_size: [value, this.state.train.doTrain.expand_size[1]],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                    <Input
-                                        className="site-input-split"
-                                        style={{
-                                            width: '8%',
-                                            borderLeft: 0,
-                                            borderRight: 0,
-                                            pointerEvents: 'none',
-                                            textAlign: 'center'
-                                        }}
-                                        placeholder="~"
-                                        disabled
-                                    />
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.expand_size[1]}
-                                                 precision={0}
-                                                 step={1}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 8;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 expand_size: [this.state.train.doTrain.expand_size[0], value],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                </Input.Group>
-
-
-                                忽略尺寸:
-                                <Input.Group compact>
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.ignore_size[0]}
-                                                 precision={0}
-                                                 step={1}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 6;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 ignore_size: [value, this.state.train.doTrain.ignore_size[1]],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                    <Input
-                                        className="site-input-split"
-                                        style={{
-                                            width: '8%',
-                                            borderLeft: 0,
-                                            borderRight: 0,
-                                            pointerEvents: 'none',
-                                            textAlign: 'center'
-                                        }}
-                                        placeholder="~"
-                                        disabled
-                                    />
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.ignore_size[1]}
-                                                 precision={0}
-                                                 step={1}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 6;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 ignore_size: [this.state.train.doTrain.ignore_size[0], value],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                </Input.Group>
-
-                                Anchor调整变化幅度:
-                                <Input.Group compact>
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.resizearrange[0]}
-                                                 precision={2}
-                                                 step={0.01}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 0.3;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 resizearrange: [value, this.state.train.doTrain.resizearrange[1]],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                    <Input
-                                        className="site-input-split"
-                                        style={{
-                                            width: '8%',
-                                            borderLeft: 0,
-                                            borderRight: 0,
-                                            pointerEvents: 'none',
-                                            textAlign: 'center'
-                                        }}
-                                        placeholder="~"
-                                        disabled
-                                    />
-                                    <InputNumber style={{width: '46%', textAlign: 'center'}}
-                                                 placeholder={this.state.train.doTrain.resizearrange[1]}
-                                                 precision={2}
-                                                 step={0.01}
-                                                 min={0}
-                                                 onChange={(value) => {
-                                                     if (value === "" || value === null || value === undefined) value = 1.6;
-                                                     this.setState({
-                                                         ...this.state,
-                                                         train: {
-                                                             ...this.state.train,
-                                                             doTrain: {
-                                                                 ...this.state.train.doTrain,
-                                                                 resizearrange: [this.state.train.doTrain.resizearrange[0], value],
-                                                             },
-                                                         }
-                                                     })
-                                                 }}/>
-                                </Input.Group>
-
-
-                                使用的GPU:
-                                <Input style={{width: '100%'}}
-                                       placeholder={this.state.train.doTrain.gpus}
-                                       onChange={(e) => {
-                                           let value = e.target.value;
-                                           if (value === "" || value === null || value === undefined) value = "0,1";
-                                           this.setState({
-                                               ...this.state,
-                                               train: {
-                                                   ...this.state.train,
-                                                   doTrain: {
-                                                       ...this.state.train.doTrain,
-                                                       gpus: value,
-                                                   },
-                                               }
-                                           })
-                                       }}/>
-                                训练类型:&nbsp;&nbsp;
-                                <Radio.Group defaultValue={this.state.train.doTrain.trianType}
-                                             onChange={(e) => {
-                                                 let value = e.target.value;
-                                                 if (value === "" || value === null || value === undefined) value = 0;
-                                                 this.setState({
-                                                     ...this.state,
-                                                     train: {
-                                                         ...this.state.train,
-                                                         doTrain: {
-                                                             ...this.state.train.doTrain,
-                                                             trianType: value,
-                                                         },
-                                                     }
-                                                 })
-                                             }}>
-                                    <Radio value={0}>从头训练</Radio>
-                                    <Radio value={1}>对应自训练</Radio>
-                                    <Radio value={2}>漏检训练</Radio>
-                                </Radio.Group>
-                                <br/>
-                                是否保留训练生成的临时数据:&nbsp;&nbsp;
-                                <Switch checkedChildren="保留" unCheckedChildren="删除" defaultChecked={false}
-                                        onChange={(v) => {
-                                            this.setState({
-                                                ...this.state,
-                                                train: {
-                                                    ...this.state.train,
-                                                    doTrain: {
-                                                        ...this.state.train.doTrain,
-                                                        rmgeneratedata: v ? 1 : 0,
-                                                    },
-                                                }
-                                            });
-                                        }}/>
-                                <br/>
-                                是否打乱数据:&nbsp;&nbsp;
-                                <Switch checkedChildren="打乱" unCheckedChildren="不打乱" defaultChecked={true}
-                                        onChange={(v) => {
-                                            this.setState({
-                                                ...this.state,
-                                                train: {
-                                                    ...this.state.train,
-                                                    doTrain: {
-                                                        ...this.state.train.doTrain,
-                                                        isshuffle: v,
-                                                    },
-                                                }
-                                            });
-                                        }}/>
-                                <br/>
-                                选择加载的预训练权重文件:
-                                <Select
-                                    style={{width: '100%'}}
-                                    placeholder={"不选择的话默认使用初始的预训练文件"}
-                                    onChange={(value) => {
-                                        this.setState({
-                                            ...this.state,
-                                            train: {
-                                                ...this.state.train,
-                                                doTrain: {
-                                                    ...this.state.train.doTrain,
-                                                    pretrainweight: value,
-                                                },
-                                            }
-                                        });
-                                    }}>
-                                    {/*{modelListV2.model_list.map(d => (*/}
-                                    {/*    <Option key={d.filename}>{d.filename}</Option>*/}
-                                    {/*))}*/}
-                                </Select>
-                                <br/>
-                                <br/>
-                                <br/>
-                            </div>
-                        }
-                        {// endregion 专业人员操作
-                        }
+                        <AIForm ref={this.aiParsformRef} dispatch={this.props.dispatch} onFinish={(values) => {console.log("aaaaa:" + JSON.stringify(values))}}/>
                         <div
                             style={{
                                 position: 'absolute',
@@ -1704,13 +1151,17 @@ class FreeFish extends React.Component {
                             }}
                         >
                             <Button onClick={() => {
+                                this.aiParsformRef.current.doSubmit();
+                            }} style={{marginRight: 8}}>
+                                测试
+                            </Button>
+                            <Button onClick={() => {
                                 this.setState({
                                     rightVisible: false,
                                 });
                             }} style={{marginRight: 8}}>
                                 关闭
                             </Button>
-
                             <Button type="primary"
                                     loading={this.state.train.loading}
                                     onClick={() => {
@@ -2157,6 +1608,13 @@ class FreeFish extends React.Component {
                                 title: '镜像地址',
                                 render: (text, record) => {
                                     return <Popover content={<Paragraph copyable={{ text: `${record.BaseImageUrl}:${record.ImageVersion}`}}>{`${record.BaseImageUrl}:${record.ImageVersion}`}</Paragraph>} title="镜像地址" trigger="hover">
+                                        <Button>查看</Button>
+                                    </Popover>;
+                                },
+                            },{
+                                title: '参数信息',
+                                render: (text, record) => {
+                                    return <Popover content={<Paragraph copyable={{ text: `${record.ParsJson}`}}>{`${record.ParsJson}`}</Paragraph>} title="参数信息" trigger="hover">
                                         <Button>查看</Button>
                                     </Popover>;
                                 },

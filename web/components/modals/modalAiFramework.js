@@ -125,6 +125,10 @@ export default class ModalAiFramework extends React.Component {
                     <Form.Item name="Remarks" label="备注">
                         <Input.TextArea />
                     </Form.Item>
+
+                    <Form.Item name="ParsJson" label="参数JSON信息" rules={[{ required: true }]}>
+                        <Input.TextArea allowClear rows={5}/>
+                    </Form.Item>
                     <Form.Item {...tailLayout}>
                         <Button type="primary" htmlType="submit">
                             提交
