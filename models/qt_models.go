@@ -6,6 +6,7 @@ import (
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/spf13/afero"
+	"os"
 	"path"
 	"qting-ai/tools"
 	"reflect"
@@ -53,7 +54,17 @@ func (t *QtModels) TableName() string {
 func init() {
 	orm.RegisterModel(new(QtModels))
 }
-
+// 判断文件夹是否存在
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
+}
 // 模型上线
 func OnlineModel(m *OnlineModelPar) (err error) {
 	if qTModel, err := GetQtModelsById(m.ModelId); err == nil {
@@ -64,7 +75,7 @@ func OnlineModel(m *OnlineModelPar) (err error) {
 			qTModel.PublishTime = time.Now()
 		}
 		// 1.0的接口这里需要查询下把之前的模型给下线
-		if oldQtModel, err := GetOneQtModelsByProjectAndMulti(qTModel.ProjectId, qTModel.IsMultilabel, m.Label); err == nil {
+		if oldQtModel, err := GetOneQtModelsByProjectAndMulti(qTModel.ProjectId, qTModel.AiFrameworkId, qTModel.IsMultilabel, m.Label); err == nil {
 			oldQtModel.Status = 1
 			_ = UpdateQtModelsById(oldQtModel)
 		}
@@ -72,11 +83,18 @@ func OnlineModel(m *OnlineModelPar) (err error) {
 		zipFile := ""
 		label := ""
 		assetPath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/")
+
 		if strings.HasSuffix(qTModel.ProjectId.AssetsPath, "/") {
 			assetPath = assetPath + qTModel.ProjectId.ProjectName
 		} else {
 			assetPath = assetPath + "/" + qTModel.ProjectId.ProjectName
 		}
+
+		if exist, _ := PathExists(path.Join(assetPath, "model_release")); !exist {
+			// 创建文件夹
+			_ = os.Mkdir(path.Join(assetPath, "model_release"), os.ModePerm)
+		}
+
 		if qTModel.IsMultilabel == 0 {
 			label = strings.ReplaceAll(qTModel.LabelStr, ",", "")
 			zipFile = fmt.Sprintf("%s/model_release/%s.zip", assetPath, label)
@@ -88,10 +106,16 @@ func OnlineModel(m *OnlineModelPar) (err error) {
 			  path.Join(qTModel.ModelBasePath, qTModel.TaskId + ".modelInfo"),
 			[]byte(fmt.Sprintf("项目名称: %s\n模型名称: %s\n发布日期: %s\n", qTModel.ProjectId.ProjectName, qTModel.ModelName, qTModel.PublishTime)),
 			0755)
-		err := tools.Zip(zipFile, qTModel.ModelBasePath, qTModel.TaskId, label, strconv.Itoa(m.ModelWidth), strconv.Itoa(m.ModelHeight))
-		if err != nil {
-			return err
+		if strings.Contains(qTModel.AiFrameworkId.FrameworkName, "QTing-tiny-3l") {
+			// 这里是老的yolo的打包方式
+			err := tools.ZipV1(zipFile, qTModel.ModelBasePath, qTModel.TaskId, label, strconv.Itoa(m.ModelWidth), strconv.Itoa(m.ModelHeight))
+			if err != nil {
+				return err
+			}
+		} else {
+			// 这里是最新的打包方式,以后的框架都是这种打包文件夹的形式!!!!!!!!
 		}
+
 		// endregion
 		qTModel.PublishUrl = strings.ReplaceAll(zipFile,
 			beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/"),
@@ -137,10 +161,10 @@ func GetQtModelsByTaskId(taskId string) (v *QtModels, err error) {
 	return nil, err
 }
 
-func GetOneQtModelsByProjectAndMulti(project *QtProjects, isMultilabel int, label string) (v *QtModels, err error) {
+func GetOneQtModelsByProjectAndMulti(project *QtProjects, aiFramework *QtAiFramework, isMultilabel int, label string) (v *QtModels, err error) {
 	o := orm.NewOrm()
 	if isMultilabel == 0 {
-		v = &QtModels{ProjectId: project, IsMultilabel: isMultilabel, Status: 2, LabelStr: ","+label+","}
+		v = &QtModels{ProjectId: project, AiFrameworkId: aiFramework, IsMultilabel: isMultilabel, Status: 2, LabelStr: ","+label+","}
 		if err = o.Read(v, "ProjectId", "IsMultilabel", "Status", "LabelStr"); err == nil {
 			_, _ = o.LoadRelated(v, "ProjectId")
 			_, _ = o.LoadRelated(v, "AiFrameworkId")
@@ -158,9 +182,10 @@ func GetOneQtModelsByProjectAndMulti(project *QtProjects, isMultilabel int, labe
 	}
 }
 
-func GetAllQtModelsByLabelsAndMulti(projectId int, oneLabel string, isMultilabel string) (ml []interface{}, err error) {
+func GetAllQtModelsByLabelsAndMulti(projectId int, aiFrameworkId int, oneLabel string, isMultilabel string) (ml []interface{}, err error) {
 	var l []QtModels
 	o := orm.NewOrm()
+	aiFramework, aiFrErr := GetQtAiFrameworkById(aiFrameworkId)
 	if project, err := GetQtProjectsById(projectId); err == nil {
 		qs := o.QueryTable(new(QtModels))
 		qs = qs.OrderBy("-Status", "-PublishTime", "-CreateTime")
@@ -168,6 +193,9 @@ func GetAllQtModelsByLabelsAndMulti(projectId int, oneLabel string, isMultilabel
 			qs = qs.Filter("ProjectId", project).Filter("IsMultilabel", isMultilabel).Filter("LabelStr__icontains", fmt.Sprintf(",%s,", oneLabel))
 		} else {
 			qs = qs.Filter("ProjectId", project).Filter("IsMultilabel", isMultilabel)
+		}
+		if aiFrErr == nil {
+			qs = qs.Filter("AiFrameworkId", aiFramework)
 		}
 		if _, err = qs.All(&l); err == nil {
 			for _, v := range l {

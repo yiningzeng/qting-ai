@@ -7,7 +7,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"plugin"
 )
-
+//func DebugPlugin(data string, filename string) {
+//	_, _ = debugTest.Train()
+//}
 func PluginRun(fileName string, symbol string, args ...interface{}) (ret interface{}, err error) {
 	p, err := plugin.Open(fmt.Sprintf("%s/%s", beego.AppConfig.DefaultString("pluginDir", "./plugins"), fileName))
 	if err != nil {

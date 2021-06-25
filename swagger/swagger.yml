@@ -439,12 +439,16 @@ paths:
         description: 项目id
         type: string
       - in: query
+        name: aiFrameworkId
+        description: AI框架id
+        type: string
+      - in: query
         name: label
         description: 单个标签名
         type: string
       - in: query
         name: isMultilabel
-        description: 是否是多类单标签，如果该值!=0 那么label上面的值会失效
+        description: 是否是多类单标签，如果该值!=0 那么label上面的值会失效, 只有在QTing-tiny-3l-single框架下才=0
         type: string
       responses:
         "200":
@@ -458,7 +462,7 @@ paths:
       tags:
       - qt_models
       description: create QtModels
-      operationId: QtModelsController.Post
+      operationId: QtModelsController.Post 发布模型
       parameters:
       - in: body
         name: body
@@ -950,23 +954,6 @@ paths:
             $ref: '#/definitions/models.QtTrainRecord'
         "403":
           description: :id is empty
-  /tools/fsnotify/{dir}:
-    put:
-      tags:
-      - tools
-      description: create QtLabels
-      operationId: ToolsController.Put
-      parameters:
-      - in: path
-        name: dir
-        description: 需要监控的文件夹目录
-        required: true
-        type: string
-      responses:
-        "201":
-          description: '{int} 监控成功'
-        "403":
-          description: body is empty
   /tools/testPlugin:
     get:
       tags:
@@ -1027,99 +1014,6 @@ definitions:
   models.AiTrain:
     title: AiTrain
     type: object
-    properties:
-      ProjectId:
-        type: integer
-        format: int64
-      aiFrameworkId:
-        type: integer
-        format: int64
-      angle:
-        type: integer
-        format: int64
-      assetsType:
-        type: string
-      batchSize:
-        type: integer
-        format: int64
-      cell_stride:
-        type: integer
-        format: int64
-      cellsize:
-        type: integer
-        format: int64
-      expand_size:
-        type: array
-        items:
-          type: integer
-          format: int64
-      gpus:
-        type: string
-      ignore_size:
-        type: array
-        items:
-          type: integer
-          format: int64
-      imageHeight:
-        type: integer
-        format: int64
-      imageWidth:
-        type: integer
-        format: int64
-      isshuffle:
-        type: boolean
-      learnrate:
-        type: number
-        format: float
-      maxIter:
-        type: integer
-        format: int64
-      mergeTrainSymbol:
-        type: integer
-        format: int64
-      otherlabelstride:
-        type: integer
-        format: int64
-      otherlabeltraintype:
-        type: integer
-        format: int64
-      pretrainWeight:
-        type: string
-      projectName:
-        type: string
-      providerType:
-        type: string
-      recalldatum:
-        type: integer
-        format: int64
-      resizearrange:
-        type: array
-        items:
-          type: number
-          format: float
-      rmgeneratedata:
-        type: integer
-        format: int64
-      singleTrain:
-        type: array
-        items:
-          type: string
-      split_ratio:
-        type: number
-        format: float
-      subdivisionssize:
-        type: integer
-        format: int64
-      taskId:
-        type: string
-      taskName:
-        type: string
-      trainwithnolabelpic:
-        type: integer
-        format: int64
-      trianType:
-        type: integer
-        format: int64
   models.OnlineModelPar:
     title: OnlineModelPar
     type: object
@@ -1156,6 +1050,9 @@ definitions:
         format: int64
       ImageVersion:
         description: 镜像版本
+        type: string
+      ParsJson:
+        description: 动态参数JSON
         type: string
       Remarks:
         description: 备注
@@ -1197,6 +1094,9 @@ definitions:
         type: integer
         format: int64
       LabelStr:
+        type: string
+      ModelBasePath:
+        description: 模型的保存目录
         type: string
       ModelName:
         description: 模型名称

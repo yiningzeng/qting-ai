@@ -38,7 +38,7 @@ func Version(args ...interface{}) (ret interface{}, err error) {
 	return t, nil
 }
 // 默认插件执行的
-func Run(args ...interface{}) (ret interface{}, err error) {
+func Done(args ...interface{}) (ret interface{}, err error) {
     return something, nil
 }
 ```

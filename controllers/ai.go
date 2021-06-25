@@ -27,10 +27,10 @@ func (c *AIController) URLMapping() {
 // @Failure 704 json error
 // @router / [post]
 func (c *AIController) Train() {
-	var v models.AiTrain
+	var v models.TrainBaseConfig
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &v)
 	if  err == nil {
-		c.Ret(v, models.DoTrain(&v))
+		c.Ret(v, models.StartTrain(&v, string(c.Ctx.Input.RequestBody)))
 	} else {
 		c.ErrorJson(701, "json数据有误", err.Error())
 	}

@@ -63,35 +63,13 @@ class FreeFish extends React.Component {
                 assetsType: "powerAi", // 素材的类型，pascalVoc和coco和other
                 providerType: "QTing-tiny-3l-single", // 框架的类型yolov3
 
-                batchSize: 64,
-                imageWidth: -1,
-                imageHeight: -1,
-                maxIter: -1, // 训练最大轮数
-                pretrainWeight: "", // 预训练权重文件
-                gpus: "0,1", // 使用的gpu id
-                trianType: 0,  // 0对应从头训练 1对应自训练 2 漏检训练
                 singleTrain: [], // 单类训练名称 ‘’则全类训练，不为空则训练输入的单类，确保单类名在标记标签中
-
-                angle: 360,
-                cell_stride: 1, //正平移步长
-                cellsize: 16, //平移框大小
-                learnratestepsratio: [0.9, 0.95], //#学习率调整步数比
-                expand_size: [8, 8], //扩展尺寸
-                ignore_size: [6, 6],//忽略尺寸
-                resizearrange: [0.4, 1.2], // anchor  调整变化幅度
-                trainwithnolabelpic: 50000, //最大负样本数
-
-                subdivisionssize: 2,
-                rmgeneratedata: 0, // 是否保留训练生成的临时数据
-                split_ratio: 0.95, // 训练样本占比
-                recalldatum: 2, // 检出率基准
-                otherlabeltraintype: 1, // 非当前标签图片训练方式
                 mergeTrainSymbol: 0, // 是否合并多标签训练
-
-                learnrate: 0.00261, // 学习率
-                otherlabelstride: 1, // 负样本平移增强步长
-                isshuffle: true, // 是否打乱数据
             },
+        },
+        modelManagerAiFramework: {
+            loadingAIFramework: false,
+            expandedRowKeys: undefined,
         },
         modelManagerSingle: {
             loadingProjects: false,
@@ -120,6 +98,7 @@ class FreeFish extends React.Component {
             // 下面这两个主要用于发布之后的更新页面操作
             label: undefined,
             projectId: undefined,
+            aiFrameworkId: undefined,
         },
     };
 
@@ -173,7 +152,7 @@ class FreeFish extends React.Component {
                     // limit: this.state.pagination.defaultPageSize,
                 },
                 callback: (v) => {
-                    console.log(`加载：${JSON.stringify(v)}`);
+                    // console.log(`加载：${JSON.stringify(v)}`);
                     this.setState({
                         ...this.state,
                         refreshTime: moment().format("YYYY-MM-DD HH:mm:ss"),
@@ -367,7 +346,117 @@ class FreeFish extends React.Component {
                 </Row>
             </div>
         };
-        const expandedModelsRowRender = (mainRecord, index, indent, expanded) => {
+        const expandedAiFramework = (mainRecord, index, indent, expanded) => {
+            return <div>
+                <Spin tip="正在加载..." spinning={this.state.modelManagerAiFramework.loadingAIFramework}>
+                    {/*<Badge status="processing" text="Running" />*/}
+                    <Table columns={[
+                        {
+                            title: 'AI框架名称',
+                            key: "FrameworkName",
+                            dataIndex: 'FrameworkName',
+                        }, {
+                            title: '备注',
+                            key: "Remarks",
+                            dataIndex: 'Remarks',
+                            render: v => {
+                                return <Tooltip title={v}>
+                                    <Text style={{width: 300}}  ellipsis={true}>{v}</Text>
+                                </Tooltip>;
+                            },
+                        },
+                        {
+                            title: '操作',
+                            render: record => {
+                                if (record.FrameworkName === "QTing-tiny-3l-single") return <a onClick={() => {
+                                    this.setState({
+                                        ...this.state,
+                                        modelManagerSingle: {
+                                            ...this.state.modelManagerSingle,
+                                            secondVisible: true,
+                                            nowEditProjectName: `${mainRecord.ProjectName} > ${record.FrameworkName}`,
+                                            expandedRowKeys: [],
+                                        },
+                                        publishModal: {
+                                            ...this.state.publishModal,
+                                            aiFrameworkId: record.Id,
+                                        }
+                                    }, () => {
+                                        this.setState({
+                                            ...this.state,
+                                            modelManagerSingle: {
+                                                ...this.state.modelManagerSingle,
+                                                loadingProjects: true,
+                                            },
+                                        }, () => {
+                                            const {dispatch} = this.props;
+                                            dispatch({
+                                                type: 'service/getLabels_v1',
+                                                payload: {
+                                                    query: encodeURI(`ProjectId:${mainRecord.Id}`),
+                                                    limit: 1000,
+                                                },
+                                                callback: (bb) => {
+                                                    this.setState({
+                                                        ...this.state,
+                                                        modelManagerSingle: {
+                                                            ...this.state.modelManagerSingle,
+                                                            loadingProjects: false,
+                                                        },
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    });
+                                }}>查看模型</a>;
+                                else return  <a onClick={() => {
+                                    this.setState({
+                                        ...this.state,
+                                        modelManagerMultilabel: {
+                                            ...this.state.modelManagerMultilabel,
+                                            secondVisible: true,
+                                            nowEditProjectName: `${mainRecord.ProjectName} > ${record.FrameworkName}`,
+                                            expandedRowKeys: [],
+                                        },
+                                        publishModal: {
+                                            ...this.state.publishModal,
+                                            aiFrameworkId: record.Id,
+                                        }
+                                    }, () => {
+                                        this.setState({
+                                            ...this.state,
+                                            modelManagerMultilabel: {
+                                                ...this.state.modelManagerMultilabel,
+                                                loadingModels: true,
+                                            },
+                                        }, () => {
+                                            const {dispatch} = this.props;
+                                            dispatch({
+                                                type: 'service/getModelsByLabelsAndMulti_v1',
+                                                payload: {
+                                                    projectId: mainRecord.Id,
+                                                    aiFrameworkId: record.Id,
+                                                    isMultilabel: 1,
+                                                },
+                                                callback: (v) => {
+                                                    this.setState({
+                                                        ...this.state,
+                                                        modelManagerMultilabel: {
+                                                            ...this.state.modelManagerMultilabel,
+                                                            loadingModels: false,
+                                                        },
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    });
+                                }}>查看模型</a>;
+                            },
+                        }]} dataSource={this.props.service.Models === undefined ? [] : this.props.service.AiFrameworks.Data}/>
+                </Spin>
+            </div>;
+        };
+        const expandedModelsSingle = (mainRecord, index, indent, expanded) => {
             return <div>
                 <Spin tip="正在加载..." spinning={this.state.modelManagerSingle.loadingModels}>
                     {/*<Badge status="processing" text="Running" />*/}
@@ -449,6 +538,7 @@ class FreeFish extends React.Component {
                                                             payload: {
                                                                 projectId: record.ProjectId.Id,
                                                                 label: mainRecord.LabelName,
+                                                                aiFrameworkId: this.state.publishModal.aiFrameworkId,
                                                                 isMultilabel: 0,
                                                             },
                                                         });
@@ -465,8 +555,6 @@ class FreeFish extends React.Component {
                                             <a>删除</a>
                                         </Popconfirm>
                                     }
-
-
                                 </span>),
                         }]} dataSource={this.props.service.Models === undefined ? [] : this.props.service.Models.Data}/>
                 </Spin>
@@ -838,6 +926,7 @@ class FreeFish extends React.Component {
                                             payload: {
                                                 projectId: this.state.publishModal.projectId,
                                                 label: this.state.publishModal.label,
+                                                aiFrameworkId: this.state.publishModal.aiFrameworkId,
                                                 isMultilabel: 0,
                                             }
                                         });
@@ -846,6 +935,7 @@ class FreeFish extends React.Component {
                                             type: 'service/getModelsByLabelsAndMulti_v1',
                                             payload: {
                                                 projectId: this.state.publishModal.projectId,
+                                                aiFrameworkId: this.state.publishModal.aiFrameworkId,
                                                 isMultilabel: 1,
                                             }
                                         });
@@ -924,7 +1014,6 @@ class FreeFish extends React.Component {
                         <Select style={{marginTop: "5px", marginBottom: "10px", width: "100%"}}
                                 defaultValue={this.props.service.Projects.Data === undefined ? "" : this.props.service.Projects.Data.length > 0 ? this.props.service.Projects.Data[0].ProjectName : ""}
                                 onChange={(value) => {
-                                    console.error(Number(value));
                                     this.setState({
                                         train: {
                                             ...this.state.train,
@@ -987,23 +1076,6 @@ class FreeFish extends React.Component {
                             <Option value="coco">coco</Option>
                             <Option value="other">other</Option>
                         </Select>
-                        {/*是否开启多标签单模型训练:&nbsp;&nbsp;*/}
-                        {/*<Switch checkedChildren="开启" unCheckedChildren="关闭"*/}
-                        {/*        checked={this.state.train.doTrain.mergeTrainSymbol === 1}*/}
-                        {/*        onChange={(c) => {*/}
-                        {/*            this.setState({*/}
-                        {/*                ...this.state,*/}
-                        {/*                train: {*/}
-                        {/*                    ...this.state.train,*/}
-                        {/*                    doTrain: {*/}
-                        {/*                        ...this.state.train.doTrain,*/}
-                        {/*                        mergeTrainSymbol: c ? 1 : 0,*/}
-                        {/*                        singleTrain: c ? [] : this.state.train.doTrain.singleTrain,*/}
-                        {/*                        providerType: c ? "QTing-tiny-3l-multilabel" : "QTing-tiny-3l-single",*/}
-                        {/*                    }*/}
-                        {/*                }*/}
-                        {/*            })*/}
-                        {/*        }}/><br/>*/}
                         训练的缺陷标签(留空也表示全部标签训练):
                         <Select disabled={this.state.train.doTrain.mergeTrainSymbol === 1}
                                 style={{marginTop: "5px", marginBottom: "10px", width: "100%"}}
@@ -1107,6 +1179,8 @@ class FreeFish extends React.Component {
                                             }
                                         }
                                     });
+                                    const item = this.props.service.AiFrameworks.Data.filter(v=>v.Id == this.state.train.doTrain.aiFrameworkId)[0];
+                                    this.aiParsformRef.current.loadAiPars(item?JSON.parse(item.ParsJson):[]);
                                 }}>
                             {
                                 this.props.service.AiFrameworks.Data.map(d => (
@@ -1123,7 +1197,6 @@ class FreeFish extends React.Component {
                         AI参数(选填)-专业人员操作:&nbsp;&nbsp;
                         <Switch checked={this.state.train.showAiPar} checkedChildren="已打开调参" unCheckedChildren="已关闭调参"
                                 onChange={(c) => {
-                                    const item = this.props.service.AiFrameworks.Data.filter(v=>v.Id == this.state.train.doTrain.aiFrameworkId)[0];
                                     this.setState({
                                         ...this.state,
                                         train: {
@@ -1131,13 +1204,44 @@ class FreeFish extends React.Component {
                                             showAiPar: c,
                                         }
                                     });
-                                    if (c){
-                                        this.aiParsformRef.current.loadAiPars(item?JSON.parse(item.ParsJson):[]);
-                                    }else{
-                                        this.aiParsformRef.current.closeAiPars();
-                                    }
                                 }}/>
-                        <AIForm ref={this.aiParsformRef} dispatch={this.props.dispatch} onFinish={(values) => {console.log("aaaaa:" + JSON.stringify(values))}}/>
+                        <AIForm display={this.state.train.showAiPar?"":"none"} ref={this.aiParsformRef} dispatch={this.props.dispatch} onFinish={(values) => {
+                            const finalValues = { ...this.state.train.doTrain, ...values};
+                            const {dispatch} = this.props;
+                            dispatch({
+                                type: 'service/postTrain_v1',
+                                payload: finalValues,
+                                callback: (v) => {
+                                    if (v["Code"] === 200) {
+                                        message.success("成功加入训练队列");
+                                        this.setState({
+                                            ...this.state,
+                                            rightVisible: false,
+                                            train: {
+                                                ...this.state.train,
+                                                loading: false,
+                                            }
+                                        });
+                                    } else {
+                                        this.setState({
+                                            ...this.state,
+                                            train: {
+                                                ...this.state.train,
+                                                loading: false,
+                                            }
+                                        });
+                                        let errMsg = v.Msg;
+                                        if (errMsg !== null && errMsg.includes("yaml: no such file or directory")) {
+                                            errMsg = "当前选择的训练框架，配置文件缺失。" + errMsg;
+                                        }
+                                        notification.error({
+                                            message: "加入训练队列失败",
+                                            description: `错误原因: ${errMsg}`,
+                                        });
+                                    }
+                                },
+                            });
+                        }}/>
                         <div
                             style={{
                                 position: 'absolute',
@@ -1150,11 +1254,11 @@ class FreeFish extends React.Component {
                                 textAlign: 'right',
                             }}
                         >
-                            <Button onClick={() => {
-                                this.aiParsformRef.current.doSubmit();
-                            }} style={{marginRight: 8}}>
-                                测试
-                            </Button>
+                            {/*<Button onClick={() => {*/}
+                            {/*    this.aiParsformRef.current.doSubmit();*/}
+                            {/*}} style={{marginRight: 8}}>*/}
+                            {/*    测试*/}
+                            {/*</Button>*/}
                             <Button onClick={() => {
                                 this.setState({
                                     rightVisible: false,
@@ -1181,41 +1285,8 @@ class FreeFish extends React.Component {
                                                 }
                                             }, () => {
 
-                                                console.log(`ducker do train: ${JSON.stringify(this.state.train.doTrain)}`);
-                                                const {dispatch} = this.props;
-                                                dispatch({
-                                                    type: 'service/postTrain_v1',
-                                                    payload: this.state.train.doTrain,
-                                                    callback: (v) => {
-                                                        if (v["Code"] === 200) {
-                                                            message.success("成功加入训练队列");
-                                                            this.setState({
-                                                                ...this.state,
-                                                                rightVisible: false,
-                                                                train: {
-                                                                    ...this.state.train,
-                                                                    loading: false,
-                                                                }
-                                                            });
-                                                        } else {
-                                                            let errMsg = v.Data;
-                                                            if (errMsg.includes("yaml: no such file or directory")) {
-                                                                errMsg = "当前选择的训练框架，配置文件缺失。" + errMsg;
-                                                            }
-                                                            notification.error({
-                                                                message: "加入训练队列失败",
-                                                                description: `错误原因: ${errMsg}`,
-                                                            });
-                                                            this.setState({
-                                                                ...this.state,
-                                                                train: {
-                                                                    ...this.state.train,
-                                                                    loading: false,
-                                                                }
-                                                            });
-                                                        }
-                                                    },
-                                                });
+                                                this.aiParsformRef.current.doSubmit();
+
                                             });
 
                                         } else {
@@ -1246,101 +1317,71 @@ class FreeFish extends React.Component {
                                 },
                             });
                         }}
+
                         visible={this.state.modelManagerSingle.firstVisible}
                     >
-                        <Table columns={[
+                        <Table
+                            rowKey={"Id"}
+                            columns={[
                             {
                                 title: '项目名',
                                 key: "ProjectName",
                                 dataIndex: 'ProjectName',
                                 render: text => <Badge status="processing" text={text}/>,
-                            },
-                            {
-                                title: '操作',
-                                // dataIndex: 'ProjectName',
-                                render: record => (
-                                    <span>
-                                    <a onClick={() => {
-                                        this.setState({
-                                            ...this.state,
-                                            modelManagerSingle: {
-                                                ...this.state.modelManagerSingle,
-                                                secondVisible: true,
-                                                nowEditProjectName: record.ProjectName,
-                                                expandedRowKeys: [],
-                                            },
-                                        }, () => {
-                                            this.setState({
-                                                ...this.state,
-                                                modelManagerSingle: {
-                                                    ...this.state.modelManagerSingle,
-                                                    loadingProjects: true,
-                                                },
-                                            }, () => {
-                                                const {dispatch} = this.props;
-                                                dispatch({
-                                                    type: 'service/getLabels_v1',
-                                                    payload: {
-                                                        query: encodeURI(`ProjectId:${record.Id}`),
-                                                        limit: 1000,
-                                                    },
-                                                    callback: (bb) => {
-                                                        this.setState({
-                                                            ...this.state,
-                                                            modelManagerSingle: {
-                                                                ...this.state.modelManagerSingle,
-                                                                loadingProjects: false,
-                                                            },
-                                                        });
-                                                    }
-                                                });
-                                            });
-                                        });
-                                    }}>单类别模型</a>
-                                        <Divider type="vertical"/>
-                                    <a onClick={() => {
-                                        this.setState({
-                                            ...this.state,
-                                            modelManagerMultilabel: {
-                                                ...this.state.modelManagerMultilabel,
-                                                secondVisible: true,
-                                                nowEditProjectName: record.ProjectName,
-                                                expandedRowKeys: [],
-                                            },
-                                        }, () => {
-                                            this.setState({
-                                                ...this.state,
-                                                modelManagerMultilabel: {
-                                                    ...this.state.modelManagerMultilabel,
-                                                    loadingModels: true,
-                                                },
-                                            }, () => {
-                                                const {dispatch} = this.props;
-                                                dispatch({
-                                                    type: 'service/getModelsByLabelsAndMulti_v1',
-                                                    payload: {
-                                                        projectId: record.Id,
-                                                        isMultilabel: 1,
-                                                    },
-                                                    callback: (v) => {
-                                                        this.setState({
-                                                            ...this.state,
-                                                            modelManagerMultilabel: {
-                                                                ...this.state.modelManagerMultilabel,
-                                                                loadingModels: false,
-                                                            },
-                                                        });
-                                                    }
-                                                });
-                                            });
-                                        });
-                                    }}>多类别模型</a>
-                                    </span>
-                                ),
-                            }]} dataSource={this.props.service.Projects.Data}/>
+                            }]} dataSource={this.props.service.Projects.Data}
+                               expandable={{
+                                   expandedRowKeys: this.state.modelManagerAiFramework.expandedRowKeys,
+                                   expandedRowRender: expandedAiFramework,
+                                   expandRowByClick: true,
+                                   onExpandedRowsChange: (expandedRows) => {
+                                   },
+                                   onExpand: (expanded, record) => {
+                                       if (!expanded) {
+                                           this.setState({
+                                               ...this.state,
+                                               modelManagerAiFramework: {
+                                                   ...this.state.modelManagerAiFramework,
+                                                   expandedRowKeys: [],
+                                               },
+                                           });
+                                           return;
+                                       }
+                                       this.setState({
+                                           ...this.state,
+                                           modelManagerAiFramework: {
+                                               ...this.state.modelManagerAiFramework,
+                                               loadingAIFramework: true,
+                                               expandedRowKeys: [record.Id],
+                                           },
+                                       }, () => {
+                                           const {dispatch} = this.props;
+                                           dispatch({
+                                               type: 'service/getAiFramework_v1',
+                                               payload: {
+                                                   sortby: "CreateTime",
+                                                   order: "desc",
+                                                   limit: 200,
+                                               },
+                                               callback: (bb) => {
+                                                   this.setState({
+                                                       ...this.state,
+                                                       modelManagerAiFramework: {
+                                                           ...this.state.modelManagerAiFramework,
+                                                           loadingAIFramework: false,
+                                                       },
+                                                   });
+                                               },
+                                           });
+                                       });
+                                   }
+                               }}
+
+                        />
+                        {// 单标签模型列表
+                        }
                         <Drawer
                             destroyOnClose={true}
-                            title={`${this.state.modelManagerSingle.nowEditProjectName}-单类别模型列表`}
+                            title={`${this.state.modelManagerSingle.nowEditProjectName} > 模型列表`}
                             width="50%"
                             maskClosable={true}
                             onClose={() => {
@@ -1370,7 +1411,7 @@ class FreeFish extends React.Component {
                                     pagination={false}
                                     expandable={{
                                         expandedRowKeys: this.state.modelManagerSingle.expandedRowKeys,
-                                        expandedRowRender: expandedModelsRowRender,
+                                        expandedRowRender: expandedModelsSingle,
                                         expandRowByClick: true,
                                         onExpandedRowsChange: (expandedRows) => {
                                         },
@@ -1398,6 +1439,7 @@ class FreeFish extends React.Component {
                                                     type: 'service/getModelsByLabelsAndMulti_v1',
                                                     payload: {
                                                         projectId: record.ProjectId.Id,
+                                                        aiFrameworkId: this.state.publishModal.aiFrameworkId,
                                                         label: record.LabelName,
                                                         isMultilabel: 0,
                                                     },
@@ -1417,9 +1459,11 @@ class FreeFish extends React.Component {
                                 />
                             </Spin>
                         </Drawer>
+                        {// 多标签模型列表-
+                        }
                         <Drawer
                             destroyOnClose={true}
-                            title={`${this.state.modelManagerMultilabel.nowEditProjectName}-多类别模型列表`}
+                            title={`${this.state.modelManagerMultilabel.nowEditProjectName} > 模型列表`}
                             width="50%"
                             maskClosable={true}
                             onClose={() => {
@@ -1455,7 +1499,7 @@ class FreeFish extends React.Component {
                                             render: (text, record) => {
                                                 if (record.Status === 2) return <Tag icon={<CloudUploadOutlined/>}
                                                                                      color="success">{record.PublishTime.toString().replace("T", " ").replace("+08:00", "")}</Tag>;
-                                                else return record.PublishTime === "0001-01-01T00:00:00Z" ? "" : record.PublishTimetoString().replace("T", " ").replace("+08:00", "");
+                                                else return record.PublishTime === "0001-01-01T00:00:00Z" ? "" : record.PublishTime.toString().replace("T", " ").replace("+08:00", "");
                                             }
                                         }, {
                                             title: '操作',
@@ -1504,6 +1548,7 @@ class FreeFish extends React.Component {
                                                                             type: 'service/getModelsByLabelsAndMulti_v1',
                                                                             payload: {
                                                                                 projectId: record.ProjectId.Id,
+                                                                                aiFrameworkId: this.state.publishModal.aiFrameworkId,
                                                                                 isMultilabel: 1,
                                                                             },
                                                                         });

@@ -4,187 +4,6 @@ import modalAiFramework from "../modals/modalAiFramework";
 const { Option } = Select;
 
 //region Form相关
-const data=[];
-const data2 = [
-    {
-        "name": "learnrate",//formitem的名称
-        "label": "学习率",//标题信息
-        "defaultValue": 0.00261,//默认值
-        "precision": 6, //小数点后保留几位
-        "step": 0.00001, //步长
-        "min": 0, //最小值
-        "required": true, //是否必填
-        "type": "InputNumber",
-    }, {
-        "name": "recalldatum",
-        "label": "检出率基数",
-        "defaultValue": 2,
-        "precision": 2,
-        "step": 0.1,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    },{
-        "name": "otherlabeltraintype",
-        "label": "非当前标签图片训练方式",
-        "defaultValue": 1,
-        "step": 1,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    },{
-        "name": "batchSize",
-        "label": "每次训练所选取的样本数",
-        "defaultValue": 64,
-        "step": 16,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    },{
-        "name": "subdivisionssize",
-        "label": "GPU训练分批批次",
-        "defaultValue": 2,
-        "step": 2,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    },{
-        "name": "imageWidth",
-        "label": "图像宽高",
-        "defaultValue": -1,
-        "step": 1,
-        "min": -1,
-        "required": true,
-        "type": "InputNumber",
-    }, {
-        "name": "angle",
-        "label": "图像随机旋转角度范围",
-        "defaultValue": 360,
-        "step": 1,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    }, {
-        "name": "split_ratio",
-        "label": "训练样本占比",
-        "defaultValue": 0.95,
-        "precision": 2,
-        "step": 0.01,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    }, {
-        "name": "maxIter",
-        "label": "训练最大轮数",
-        "defaultValue": -1,
-        "step": 1,
-        "min": -1,
-        "required": true,
-        "type": "InputNumber",
-    }, {
-        "name": "trainwithnolabelpic",
-        "label": "最大负样本数",
-        "defaultValue": 50000,
-        "step": 1,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    }, {
-        "name": "cell_stride",
-        "label": "正样本平移增强步长",
-        "defaultValue": 1,
-        "step": 1,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    }, {
-        "name": "otherlabelstride",
-        "label": "负样本平移增强步长",
-        "defaultValue": 1,
-        "step": 1,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    },  {
-        "name": "cellsize",
-        "label": "平移框大小",
-        "defaultValue": 16,
-        "step": 1,
-        "min": 0,
-        "required": true,
-        "type": "InputNumber",
-    },  {
-        "names": ["learnratestepsratio0", "learnratestepsratio1"],
-        "label": "学习率调整步数比",
-        "defaultValue": [0.9,0.95],
-        "precision": [2,2],
-        "step": [0.01,0.01],
-        "min": [0,0],
-        "required": true,
-        "type": "Range",
-    },  {
-        "names": ["expand_size0", "expand_size1"],
-        "label": "扩展尺寸",
-        "defaultValue": [8,8],
-        "step": [1,1],
-        "min": [0,0],
-        "required": true,
-        "type": "Range",
-    }, {
-        "names": ["ignore_size0", "ignore_size1"],
-        "label": "忽略尺寸",
-        "defaultValue": [6,6],
-        "step": [1,1],
-        "min": [0,0],
-        "required": true,
-        "type": "Range",
-    }, {
-        "names": ["resizearrange0", "resizearrange1"],
-        "label": "Anchor调整变化幅度",
-        "defaultValue": [0.3,1.6],
-        "step": [0.01,0.01],
-        "min": [0,0],
-        "required": true,
-        "type": "Range",
-    }, {
-        "name": "gpus",
-        "label": "使用的GPU",
-        "required": true,
-        "type": "String",
-        "defaultValue": "0,1"
-    }, {
-        "name": "trianType",
-        "label": "训练类型",
-        "required": true,
-        "type": "RadioGroup",
-        "defaultValue": 0,
-        "radioValues": [0,1,2],
-        "radioLabels": ["从头训练", "对应自训练", "漏检训练"]
-    }, {
-        "name": "rmgeneratedata",
-        "label": "是否保留训练生成的临时数据",
-        "checkedChildren": "保留",
-        "unCheckedChildren": "删除",
-        "required": true,
-        "type": "Switch",
-        "defaultChecked":  false,
-    }, {
-        "name": "isshuffle",
-        "label": "是否打乱数据",
-        "checkedChildren": "打乱",
-        "unCheckedChildren": "不打乱",
-        "required": true,
-        "type": "Switch",
-        "defaultChecked":  true,
-    }, {
-        "name": "pretrainweight",
-        "label": "选择加载的预训练权重文件",
-        "required": true,
-        "type": "Select",
-        "optionValues": [],
-        "optionLabels":[],
-    }
-];
 const layout = {
     labelCol: {
         xs: { span: 24 },
@@ -315,13 +134,13 @@ export default class AIForm extends React.Component {
                 break;
             case 'Range':
                 return <Form.Item style={{marginBottom: 0}}>
-                    <Form.Item initialValue={item.defaultValue} rules={[{ required: item.required, message: `请输入${item.label}`}]} name={item.names?item.names[0]:undefined}
+                    <Form.Item initialValue={item.defaultValue[0]} rules={[{ required: item.required, message: `请输入${item.label}`}]} name={`Range#${item.name}#0`}
                                style={{display: 'inline-block', width: '45%', marginBottom: 0}}>
                         <InputNumber style={{width: '100%', textAlign: 'center'}}
                                      precision={item.precision?item.precision[0]:undefined} step={item.step?item.step[0]:undefined} min={item.min?item.min[0]:undefined}/>
                     </Form.Item>
                     <Input className="site-input-split" style={{width: '10%', borderLeft: 0, borderRight: 0, pointerEvents: 'none', textAlign: 'center'}} placeholder="~" disabled/>
-                    <Form.Item initialValue={item.defaultValue} rules={[{ required: item.required, message: `请输入${item.label}`}]} name={item.names?item.names[1]:undefined}
+                    <Form.Item initialValue={item.defaultValue[1]} rules={[{ required: item.required, message: `请输入${item.label}`}]} name={`Range#${item.name}#1`}
                                style={{display: 'inline-block', width: '45%', margin: '0 -1px', marginBottom: 0}}>
                         <InputNumber style={{width: '100%', textAlign: 'center'}}
                                      precision={item.precision?item.precision[1]:undefined} step={item.step?item.step[1]:undefined} min={item.min?item.min[1]:undefined}/>
@@ -364,12 +183,33 @@ export default class AIForm extends React.Component {
         return (
             <Spin spinning={this.state.loadingAiPars} tip="正在加载框架参数...">
             <Form
+                style={{display: this.props.display}}
                 ref={this.formRef}
                 {...layout}
                 layout='vertical'
                 size={'small'}
                 onFinish={(values) => {
-                    this.props.onFinish(values);
+                    // console.log(JSON.stringify(this.formRef.current.getFieldsValue(), null, 2));
+                    // const aa = values.filter(v=>v.indexOf("Range#")>-1);
+                    let finalValues = {};
+                    for (const name in values) {
+                        if (name.includes("Range#")) {
+                            try{
+                                const id = name.split('#')[2];
+                                if (id === "0") {
+                                    const nStr = name.split('#')[1];
+                                    finalValues[nStr] = [values[name], values[name.replace("#0", "#1")]];
+                                }
+                            }
+                            catch (e) {
+                            }
+                        }
+                        else {
+                            finalValues[name] =values[name];
+                        }
+                    }
+                    // console.log(`Final: ${JSON.stringify(finalValues, null, 2)}`);
+                    this.props.onFinish(finalValues);
                 }}>
                 {
                     this.state.aiPars.map((item, index) => {
@@ -377,7 +217,7 @@ export default class AIForm extends React.Component {
                         // item.value = item.type == 'date' ? moment(item.value).format('YYYY-MM-DD') : item.value;
                         return (
                             <Form.Item
-                                name={item.name}
+                                name={item.type === "Range" ? undefined : item.name}
                                 key={index}
                                 {...formItemLayout}
                                 style={{
@@ -385,7 +225,7 @@ export default class AIForm extends React.Component {
                                     padding: 0,
                                 }}
                                 label={item.label}
-                                initialValue={item.defaultValue}
+                                initialValue={item.type === "Range" ? undefined : item.defaultValue}
                                 rules={[{ required: item.required, message: `请输入${item.label}` }]}
                             >
                                 {this.switchItem(item)}

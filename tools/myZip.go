@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func Zip(dst, src string, taskId string, label string, width string, height string) (err error) {
+func ZipV1(dst, src string, taskId string, label string, width string, height string) (err error) {
 	// 创建准备写入的文件
 	fw, err := os.Create(dst)
 	defer fw.Close()

@@ -24,7 +24,7 @@ func (c *QtModelsController) URLMapping() {
 }
 
 // Post ...
-// @Title Post
+// @Title Post 发布模型
 // @Description create QtModels
 // @Param	body		body 	models.OnlineModelPar	true		"body for QtModels content"
 // @Success 201 {int} models.QtModels
@@ -84,14 +84,16 @@ func (c *QtModelsController) GetOne() {
 // @Title 获取模型的所有模型通过字段
 // @Description get QtModels
 // @Param	projectId	query	string	false	"项目id"
+// @Param	aiFrameworkId	query	string	false	"AI框架id"
 // @Param	label	query	string	false	"单个标签名"
-// @Param	isMultilabel	query	string	false	"是否是多类单标签，如果该值!=0 那么label上面的值会失效"
+// @Param	isMultilabel	query	string	false	"是否是多类单标签，如果该值!=0 那么label上面的值会失效, 只有在QTing-tiny-3l-single框架下才=0"
 // @Success 200 {object} models.QtModels
 // @Failure 403
 // @router /GetAllQtModelsByLabelsAndMulti/ [get]
 func  (c *QtModelsController) GetAllQtModelsByLabelsAndMulti() {
 	projectId, _ := strconv.Atoi(c.GetString("projectId"))
-	c.Ret(models.GetAllQtModelsByLabelsAndMulti(projectId, c.GetString("label"), c.GetString("isMultilabel")))
+	aiFrameworkId, _ := strconv.Atoi(c.GetString("aiFrameworkId"))
+	c.Ret(models.GetAllQtModelsByLabelsAndMulti(projectId, aiFrameworkId, c.GetString("label"), c.GetString("isMultilabel")))
 }
 
 // GetAll ...

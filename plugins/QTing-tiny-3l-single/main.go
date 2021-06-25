@@ -1,11 +1,14 @@
 package main
+//package debugTest
 
 import (
+	"encoding/json"
 	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+	"gopkg.in/yaml.v2"
 	"os"
 	"path"
 	"qting-ai/models"
@@ -15,8 +18,91 @@ import (
 
 var (
 	pluginName    = "QTing-tiny-3l-single"
-	pluginVersion = 10
+	pluginVersion = 11
 )
+
+type AiTrain struct {
+	AiFrameworkId       int       `json:"aiFrameworkId"`
+	ProjectId           int       `yaml:"projectId"` // 训练中心使用 项目名
+	TaskId              string    `json:"taskId"`
+	TaskName            string    `json:"taskName"`
+	ProjectName         string    `json:"projectName"`
+	AssetsType          string    `json:"assetsType"`
+	ProviderType        string    `json:"providerType"`
+
+	Batchsize           int       `json:"batchSize"`
+	Imagewidth          int       `json:"imageWidth"`
+	Imageheight         int       `json:"imageHeight"`
+	Maxiter             int       `json:"maxIter"`
+	Pretrainweight      string    `json:"pretrainWeight"`
+	Gpus                string    `json:"gpus"`
+	Triantype           int       `json:"trianType"`
+	Singletrain         []string  `json:"singleTrain"`
+	Angle               int       `json:"angle"`
+	Cell_stride         int       `json:"cell_stride"`
+	Cellsize            int       `json:"cellsize"`
+	Expand_size         []int     `json:"expand_size"`
+	Ignore_size         []int     `json:"ignore_size"`
+	Resizearrange       []float32 `json:"resizearrange"`
+	Trainwithnolabelpic int       `json:"trainwithnolabelpic"`
+	Subdivisionssize    int       `json:"subdivisionssize"`
+	Rmgeneratedata      int       `json:"rmgeneratedata"`
+	Split_ratio         float32   `json:"split_ratio"`
+	Recalldatum         int       `json:"recalldatum"`
+	Otherlabeltraintype int       `json:"otherlabeltraintype"`
+	Mergetrainsymbol    int       `json:"mergeTrainSymbol"`
+	Learnrate           float32   `json:"learnrate"`
+	Otherlabelstride    int       `json:"otherlabelstride"`
+	Isshuffle           bool      `json:"isshuffle"`
+}
+
+type TrainConfig struct {
+	ProjectId  int `yaml:"projectId"` // 训练中心使用 项目名
+	ProjectName string `yaml:"projectName"` // 训练中心使用 项目名
+	ProjectPath string `yaml:"projectPath"` // 训练中心使用 项目路径
+	ProviderType string `yaml:"providerType"` // 训练中心使用 框架名称
+	Image string `yaml:"image"` // 训练中心使用 框架的docker镜像
+	Volume string `yaml:"volume"` // 训练中心使用 框架镜像内部映射的地址
+	TaskId string `yaml:"taskId"` // 训练中心使用 项目标识
+
+	Acc_suggest_pro []float32 `yaml:"acc_suggest_pro"`
+	Anchortype int `yaml:"anchortype"`
+	Angle int `yaml:"angle"`
+	Batchsize int `yaml:"batchsize"`
+	Cell_stride int `yaml:"cell_stride"`
+	Cellsize int `yaml:"cellsize"`
+	Expand_size []int `yaml:"expand_size"`
+	F1_suggest_pro []float32 `yaml:"f1_suggest_pro"`
+	Gpus string `yaml:"gpus"`
+	Ignore_size []int `yaml:"ignore_size"`
+	Imagesize []int `yaml:"imagesize"`
+	Labelsfilename string `yaml:"labelsfilename"`
+	Lablelist []string `yaml:"lablelist"`
+	Maxiter int `yaml:"maxiter"`
+	MergeTrainSymbol int `yaml:"mergeTrainSymbol"`
+	Modeldcfgname string `yaml:"modeldcfgname"`
+	Modelname string `yaml:"modelname"`
+	Otherlabeltraintype int `yaml:"otherlabeltraintype"`
+	Path_prefix string `yaml:"path_prefix"`
+	Pixelareafpthresh []float32 `yaml:"pixelareafpthresh"`
+	Pretraincfgname string `yaml:"pretraincfgname"`
+	Pretrainweight string `yaml:"pretrainweight"`
+	Random int `yaml:"random"`
+	Recall_suggest_pro []float32 `yaml:"recall_suggest_pro"`
+	Recalldatum int `yaml:"recalldatum"`
+	Resizearrange []float32 `yaml:"resizearrange"`
+	Rmgeneratedata int `yaml:"rmgeneratedata"`
+	Scale int `yaml:"scale"`
+	Singletrain []string `yaml:"singletrain"`
+	Split_ratio float32 `yaml:"split_ratio"`
+	Subdivisionssize int `yaml:"subdivisionssize"`
+	Sum_suggest_pro []float32 `yaml:"sum_suggest_pro"`
+	Trainwithnolabelpic int `yaml:"trainwithnolabelpic"`
+	Triantype int `yaml:"triantype"`
+	Learnrate float32 `yaml:"learnrate"`
+	Otherlabelstride int `yaml:"otherlabelstride"`
+	Isshuffle bool `yaml:"isshuffle"`
+}
 
 func Version(args ...interface{}) (ret interface{}, err error) {
 	t := models.QtPlugins{
@@ -53,8 +139,122 @@ func getSuggest(taskId string, labelName string, modelBasePath string) (res stri
 	return ""
 }
 
+
+func DoTrain(m *AiTrain) (err error) {
+	fs := afero.NewOsFs()
+	if b, err := afero.ReadFile(fs, "conf/" + m.ProviderType + ".yaml"); err == nil {
+		var temp TrainConfig
+		if err = yaml.Unmarshal(b, &temp); err == nil {
+			// region 第一步 先查询相关数据 并更新数据
+			aiFramwork, err := models.GetQtAiFrameworkById(m.AiFrameworkId)
+			if err != nil {return err}
+
+			temp.Modeldcfgname = aiFramwork.Cfg
+			temp.Image = fmt.Sprintf("%s:%s", aiFramwork.BaseImageUrl, aiFramwork.ImageVersion)
+			temp.Volume = aiFramwork.Volume
+
+			project, err := models.GetQtProjectsById(m.ProjectId)
+			if err != nil {return err}
+			temp.ProjectPath = project.AssetsPath
+			// endregion
+			// region 第二步 更新数据 发布到队列
+			temp.Batchsize =  m.Batchsize
+			temp.Maxiter =  m.Maxiter
+			temp.Imagesize =  []int {m.Imagewidth, m.Imageheight}
+			temp.Modelname =  m.TaskId
+			temp.Triantype =  m.Triantype
+			temp.Pretrainweight =  m.Pretrainweight
+			temp.Pretraincfgname = m.Pretrainweight
+			temp.Gpus =  m.Gpus
+			temp.Singletrain =  m.Singletrain[:]
+			temp.Angle =  m.Angle
+			temp.Cell_stride =  m.Cell_stride
+			temp.Cellsize =  m.Cellsize
+			temp.Expand_size =  m.Expand_size[:]
+			temp.Ignore_size =  m.Ignore_size[:]
+			temp.Resizearrange =  m.Resizearrange[:]
+			temp.Trainwithnolabelpic =  m.Trainwithnolabelpic
+			temp.Subdivisionssize =  m.Subdivisionssize
+			temp.Rmgeneratedata =  m.Rmgeneratedata
+			temp.Split_ratio =  m.Split_ratio
+			temp.Recalldatum =  m.Recalldatum
+			temp.Otherlabeltraintype =  m.Otherlabeltraintype
+			temp.MergeTrainSymbol =  m.Mergetrainsymbol
+
+			temp.ProjectName = project.ProjectName
+			temp.ProjectId = project.Id
+			temp.TaskId = m.TaskId
+			temp.ProviderType = m.ProviderType
+
+			temp.Isshuffle = m.Isshuffle
+			temp.Otherlabelstride = m.Otherlabelstride
+			temp.Learnrate = m.Learnrate
+			data, err := yaml.Marshal(temp)
+			if err != nil {
+				return err
+			}
+			savePath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/") + temp.ProjectName + "/training_data/"
+			statusFile := fmt.Sprintf("%s/train_status_%s.log", savePath, temp.TaskId)
+
+			logrus.WithField("taskId", temp.TaskId).Info("开始训练")
+			if err = fs.MkdirAll(savePath, 0755); err == nil {
+
+				if err = afero.WriteFile(fs, statusFile, []byte(models.Waiting), 0755); err == nil {
+					err = afero.WriteFile(fs, savePath+"config.yaml", data, 0755)
+					//go tools.GetMsg(true)
+				} else {
+					logrus.WithField("taskId", temp.TaskId).Error("训练失败")
+				}
+			}
+
+			models.Publish(string(data))
+			// endregion
+			// region 第三步 插入数据到数据库
+			record := &models.QtTrainRecord{
+				TaskId:        m.TaskId,
+				TaskName:      m.TaskName,
+				ProjectId:     &models.QtProjects{Id: m.ProjectId},
+				Status:        models.WaitingInt,
+				AiFrameworkId: aiFramwork,
+				AssetsType:    m.AssetsType,
+				IsJump:        0,
+				DrawUrl: fmt.Sprintf("..%s/%s/training_data/train_%s/chart.png",
+					beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting"),
+					project.ProjectName, m.TaskId),
+				CreateTime: time.Now(),
+			}
+			_, err = models.AddQtTrainRecord(record)
+			if err != nil {return err}
+			if beego.AppConfig.DefaultBool("saveRabbitmqInfo", false) {
+				qqtTrainRecord, _ := models.GetQtTrainRecordByTaskId(m.TaskId)
+				_, _ = models.AddQtRabbitmqInfo(&models.QtRabbitmqInfo{
+					RecordId: qqtTrainRecord,
+					Queue:    beego.AppConfig.DefaultString("queue_name", "ai.train.topic-queue"),
+					Message:  string(data),
+				})
+			}
+			// endregion
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		return err
+	}
+}
+
+// 框架开始训练执行方法
+func Train(args ...interface{}) (ret interface{}, err error) {
+	trainStr := args[0].(string)
+	var v AiTrain
+	if err = json.Unmarshal([]byte(trainStr), &v); err == nil {
+		err = DoTrain(&v)
+	}
+	return nil, nil
+}
+
 // 插件通用的执行方法
-func Run(args ...interface{}) (ret interface{}, err error) {
+func Done(args ...interface{}) (ret interface{}, err error) {
 	taskId := args[0].(string)
 	projectName := args[1].(string)
 	aiFrameworkName := args[2].(string)
@@ -108,3 +308,17 @@ func Run(args ...interface{}) (ret interface{}, err error) {
 		return nil, err
 	}
 }
+
+func main() {
+	if _, err := os.Stat(`/qtingvisionfolder/Projects/前道/backup/QTing-tiny-3l-multilabel/20210218152531.weights`); err == nil {
+		logrus.Info("啦啦啦")
+	}
+	//str := "{\"aiFrameworkId\":1,\"taskId\":\"20210623174205\",\"taskName\":\"啊啊所多\",\"projectId\":1,\"assetsType\":\"powerAi\",\"providerType\":\"QTing-tiny-3l-single\",\"singleTrain\":[\"luhou-zhanxi\",\"xiqiu\",\"heidian\",\"aasds\",\"zhanxi\",\"op\",\"o2p\",\"o2p2\",\"xizhu\",\"dianzhuang-yiwu\",\"yanghua\",\"asdsadsddd\",\"消息\",\"可爱\",\"可爱2\",\"阿萨德\",\"二套\",\"让他\",\"阿萨德3\",\"阿萨德36\",\"小可爱\",\"战三\",\"李四\",\"小吴\"],\"mergeTrainSymbol\":0,\"learnrate\":0.00261,\"recalldatum\":2,\"otherlabeltraintype\":1,\"batchSize\":64,\"subdivisionssize\":2,\"imageWidth\":-1,\"angle\":360,\"split_ratio\":0.95,\"maxIter\":-1,\"trainwithnolabelpic\":50000,\"cell_stride\":1,\"otherlabelstride\":1,\"cellsize\":16,\"learnratestepsratio\":[0.9,0.95],\"expand_size\":[8,8],\"ignore_size\":[6,6],\"resizearrange\":[0.3,1.6],\"gpus\":\"0,1\",\"trianType\":0,\"rmgeneratedata\": 0,\"isshuffle\":true}"
+
+	//var trainConfig TrainConfigTest
+	//if err := yaml.Unmarshal([]byte(str), &trainConfig); err == nil {
+	//	_, _ = Train(str)
+	//}
+
+}
+
