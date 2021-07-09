@@ -56,6 +56,9 @@ class FreeFish extends React.Component {
             showAiPar: false,
             loading: false,
             doTrain: {
+
+                modelname: undefined, // 训练唯一号,
+
                 aiFrameworkId: 1, // 框架id
                 taskId: undefined, // 项目id
                 taskName: undefined, // 训练任务名称
@@ -65,6 +68,17 @@ class FreeFish extends React.Component {
 
                 singleTrain: [], // 单类训练名称 ‘’则全类训练，不为空则训练输入的单类，确保单类名在标记标签中
                 mergeTrainSymbol: 0, // 是否合并多标签训练
+
+                // 没用的参数
+                acc_suggest_pro: [],
+                anchortype: 2,
+                f1_suggest_pro: [0],
+                imagesize: [-1,-1],
+                labelsfilename: '',
+                lablelist: [],
+                path_prefix: '',
+                recall_suggest_pro: [],
+                sum_suggest_pro: [],
             },
         },
         modelManagerAiFramework: {
@@ -650,6 +664,11 @@ class FreeFish extends React.Component {
                                     const {dispatch} = this.props;
                                     dispatch({
                                         type: 'service/getProjects_v1',
+                                        payload: {
+                                            sortby: "CreateTime",
+                                            order: "desc",
+                                            limit: 200,
+                                        },
                                         callback: (aa) => {
 
                                         }
@@ -664,10 +683,16 @@ class FreeFish extends React.Component {
                                     const {dispatch} = this.props;
                                     dispatch({
                                         type: 'service/getProjects_v1',
+                                        payload: {
+                                            sortby: "CreateTime",
+                                            order: "desc",
+                                            limit: 200,
+                                        },
                                         callback: (aa) => {
                                             this.setState({
                                                 train: {
                                                     ...this.state.train,
+                                                    loading: false,
                                                     doTrain: {
                                                         ...this.state.train.doTrain,
                                                         projectId: aa.Data.length > 0 ? aa.Data[0].Id : undefined,
@@ -686,6 +711,11 @@ class FreeFish extends React.Component {
                                                         // 获取框架信息
                                                         dispatch({
                                                             type: 'service/getAiFramework_v1',
+                                                            payload: {
+                                                                sortby: "CreateTime",
+                                                                order: "desc",
+                                                                limit: 200,
+                                                            },
                                                             callback: (cc) => {
                                                                 const singleTrain = [];
                                                                 if (bb.Data !== null) {
@@ -706,6 +736,10 @@ class FreeFish extends React.Component {
                                                                             providerType: cc.Data !== null ? cc.Data[0].FrameworkName : "QTing-tiny-3l-single",
                                                                         }
                                                                     }
+                                                                }, () => {
+                                                                    this.aiParsformRef.current.closeAiPars();
+                                                                    const item = this.props.service.AiFrameworks.Data.filter(v=>v.Id == this.state.train.doTrain.aiFrameworkId)[0];
+                                                                    this.aiParsformRef.current.loadAiPars(item?JSON.parse(item.ParsJson):[]);
                                                                 });
                                                             }
                                                         });
@@ -1178,9 +1212,11 @@ class FreeFish extends React.Component {
                                                 mergeTrainSymbol: value.toString().split('|')[1] === "QTing-tiny-3l-multilabel" ? 1 : 0,
                                             }
                                         }
+                                    }, () => {
+                                        const item = this.props.service.AiFrameworks.Data.filter(v=>v.Id == this.state.train.doTrain.aiFrameworkId)[0];
+                                        console.log("哦哦哦接入口\n" + JSON.stringify(item));
+                                        this.aiParsformRef.current.loadAiPars(item?JSON.parse(item.ParsJson):[]);
                                     });
-                                    const item = this.props.service.AiFrameworks.Data.filter(v=>v.Id == this.state.train.doTrain.aiFrameworkId)[0];
-                                    this.aiParsformRef.current.loadAiPars(item?JSON.parse(item.ParsJson):[]);
                                 }}>
                             {
                                 this.props.service.AiFrameworks.Data.map(d => (
@@ -1206,6 +1242,7 @@ class FreeFish extends React.Component {
                                     });
                                 }}/>
                         <AIForm display={this.state.train.showAiPar?"":"none"} ref={this.aiParsformRef} dispatch={this.props.dispatch} onFinish={(values) => {
+
                             const finalValues = { ...this.state.train.doTrain, ...values};
                             const {dispatch} = this.props;
                             dispatch({

@@ -223,6 +223,7 @@ export default class AIForm extends React.Component {
                                 style={{
                                     marginBottom: 1,
                                     padding: 0,
+                                    display: item.visible ? "" : "none",
                                 }}
                                 label={item.label}
                                 initialValue={item.type === "Range" ? undefined : item.defaultValue}

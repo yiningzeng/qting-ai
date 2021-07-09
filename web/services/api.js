@@ -18,8 +18,8 @@ export async function getList_v1(params) {
         method: 'GET',
     });
 }
-export async function getProjects_v1() {
-    return request(`${urlPrefix}/v1/qt_projects/`, {
+export async function getProjects_v1(params) {
+    return request(`${urlPrefix}/v1/qt_projects/?${stringify(params)}`, {
         method: 'GET',
     });
 }
