@@ -45,7 +45,7 @@ func (c *AIController) Train() {
 // @router /stop/:taskId [put]
 func (c *AIController) StopTrain() {
 	idStr := c.Ctx.Input.Param(":taskId")
-	err := models.StopTrain(idStr, models.Stopped, models.StoppedInt)
+	err := models.StopTrain(idStr)
 	c.Ret("停止成功", err)
 }
 

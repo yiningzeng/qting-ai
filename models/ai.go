@@ -31,6 +31,7 @@ const (
 	StoppedInt  = 3
 	DoneInt     = 4
 	UnknownInt  = 110
+	UnDo = -100
 )
 
 // 弃用
@@ -190,18 +191,22 @@ func StartTrain(trainBConfig *TrainBaseConfig, data string)(err error) {
 	return err
 }
 
-func StopTrain(taskId string, status string, statusCode int) (err error) {
+func StopTrain(taskId string) (err error) {
 	if data, err := GetQtTrainRecordByTaskId(taskId); err == nil {
-		data.Status = statusCode
 		savePath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/") + data.ProjectId.ProjectName + "/training_data/"
 		fs := afero.NewOsFs()
 		statusFile := fmt.Sprintf("%s/train_status_%s.log", savePath, taskId)
-		cmd := exec.Command("bash", "-c", fmt.Sprintf("docker stop 'qtingTrain-%s'", taskId))
-		_, err := cmd.CombinedOutput()
-		if err == nil {
-			updateStatus(fs, statusFile, status, statusCode, taskId, "")
+		cmd := exec.Command("bash", "-c", fmt.Sprintf("docker ps |grep '%s'", taskId))
+		if err := cmd.Run(); err == nil{
+			cmd = exec.Command("bash", "-c", fmt.Sprintf("docker stop 'qtingTrain-%s'", taskId))
+			err = cmd.Run()
+			cmd = exec.Command("bash", "-c", fmt.Sprintf("docker rm 'qtingTrain-%s'", taskId))
+			err = cmd.Run()
+			updateStatus(fs, statusFile, Stopped, UnDo, taskId, "")
+			return nil
 		} else {
-			return err
+			updateStatus(fs, statusFile, Stopped, UnDo, taskId, "")
+			return nil
 		}
 	}
 	return err
