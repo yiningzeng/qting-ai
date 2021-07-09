@@ -11,13 +11,13 @@ import (
 )
 
 type QtPlugins struct {
-	Id          int       `orm:"column(id);auto"`
-	Module      string    `orm:"column(module);size(50)" description:"插件模块"`
-	VersionCode int       `orm:"column(version_code)" description:"插件版本"`
-	Symbol      string    `orm:"column(symbol);size(50)" description:"入口函数"`
-	Args        string    `orm:"column(args);size(255);null" description:"参数说明"`
-	PluginName  string    `orm:"column(plugin_name);size(255)" description:"插件文件名"`
-	CreateTime  time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
+	Id          int       `json:"Id" orm:"column(id);auto"`
+	Module      string    `json:"Module" orm:"column(module);size(50)" description:"插件模块"`
+	VersionCode int       `json:"VersionCode" orm:"column(version_code)" description:"插件版本"`
+	Symbol      string    `json:"Symbol" orm:"column(symbol);size(50)" description:"入口函数"`
+	Args        string    `json:"Args" orm:"column(args);size(255);null" description:"参数说明"`
+	PluginName  string    `json:"PluginName" orm:"column(plugin_name);size(255)" description:"插件文件名"`
+	CreateTime  time.Time `json:"CreateTime" orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtPlugins) TableName() string {

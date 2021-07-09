@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/beego/beego/v2/client/orm"
 	beego "github.com/beego/beego/v2/server/web"
@@ -12,6 +13,7 @@ import (
 	"os/exec"
 	"qting-ai/tools"
 	"strings"
+	"time"
 )
 
 const (
@@ -120,13 +122,16 @@ const (
 //}
 
 type TrainBaseConfig struct {
-	ProjectId  int `yaml:"projectId"` // 训练中心使用 项目名
-	ProjectName string `yaml:"projectName"` // 训练中心使用 项目名
-	ProjectPath string `yaml:"projectPath"` // 训练中心使用 项目路径
-	ProviderType string `yaml:"providerType"` // 训练中心使用 框架名称
-	Image string `yaml:"image"` // 训练中心使用 框架的docker镜像
-	Volume string `yaml:"volume"` // 训练中心使用 框架镜像内部映射的地址
-	TaskId string `yaml:"taskId"` // 训练中心使用 项目标识
+	ProjectId     int    `json:"projectId" yaml:"projectId"`    // 训练中心使用 项目名
+	ProjectName   string `json:"projectName" yaml:"projectName"`  // 训练中心使用 项目名
+	ProjectPath   string `json:"projectPath" yaml:"projectPath"`  // 训练中心使用 项目路径
+	ProviderType  string `json:"providerType" yaml:"providerType"` // 训练中心使用 框架名称
+	Image         string `json:"image" yaml:"image"`        // 训练中心使用 框架的docker镜像
+	Volume        string `json:"volume" yaml:"volume"`       // 训练中心使用 框架镜像内部映射的地址
+	TaskId        string `json:"taskId" yaml:"taskId"`       // 训练中心使用 项目标识
+	TaskName      string `json:"taskName" yaml:"taskName"`     //
+	AiFrameworkId int    `json:"aiFrameworkId" yaml:"aiFrameworkId"`
+	AssetsType    string `json:"assetsType" yaml:"assetsType"`
 }
 // region Aoi获取的接口
 type OneAoiProject struct {
@@ -187,8 +192,57 @@ func StartTrain(trainBConfig *TrainBaseConfig, data string)(err error) {
 	logrus.WithFields(logrus.Fields{
 		"pluginFileName":    pluginFileName,
 	}).Info("开始调用训练...")
-	_, err = tools.PluginRun(pluginFileName, "Train", data)
-	return err
+	aiFramework, err := GetQtAiFrameworkById(trainBConfig.AiFrameworkId); if err !=nil {return errors.Wrap(err, "query QtAiFramework err")}
+	aiFrameworkByte, err := json.Marshal(&aiFramework); if err !=nil {return errors.Wrap(err, "Marshal QtAiFramework err")}
+	project, err := GetQtProjectsById(trainBConfig.ProjectId); if err !=nil {return errors.Wrap(err, "query project err")}
+	projectByte, err := json.Marshal(&project); if err !=nil {return errors.Wrap(err, "Marshal project err")}
+
+	if finalData, err := tools.PluginRun(pluginFileName, "Train", string(projectByte), string(aiFrameworkByte), data); err == nil {
+		// region 插入数据和写入本地状态并且训练参数发布到队列
+		record := &QtTrainRecord{
+			TaskId:        trainBConfig.TaskId,
+			TaskName:      trainBConfig.TaskName,
+			ProjectId:     project,
+			Status:        WaitingInt,
+			AiFrameworkId: aiFramework,
+			AssetsType:    trainBConfig.AssetsType,
+			IsJump:        0,
+			DrawUrl: fmt.Sprintf("..%s/%s/training_data/train_%s/chart.png",
+				beego.AppConfig.DefaultString("ProjectPathStaticDir", "/qting"),
+				project.ProjectName, trainBConfig.TaskId),
+			CreateTime: time.Now(),
+		}
+		_, err = AddQtTrainRecord(record)
+		if err != nil {return err}
+		if beego.AppConfig.DefaultBool("saveRabbitmqInfo", false) {
+			qqtTrainRecord, _ := GetQtTrainRecordByTaskId(trainBConfig.TaskId)
+			_, _ = AddQtRabbitmqInfo(&QtRabbitmqInfo{
+				RecordId: qqtTrainRecord,
+				Queue:    beego.AppConfig.DefaultString("queue_name", "ai.train.topic-queue"),
+				Message:  finalData.(string),
+			})
+		}
+
+		savePath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/") + project.ProjectName + "/training_data/"
+		statusFile := fmt.Sprintf("%s/train_status_%s.log", savePath, trainBConfig.TaskId)
+
+		logrus.WithField("taskId", trainBConfig.TaskId).Info("开始训练")
+		fs := afero.NewOsFs()
+		if err = fs.MkdirAll(savePath, 0755); err == nil {
+			if err = afero.WriteFile(fs, statusFile, []byte(Waiting), 0755); err == nil {
+				Publish(finalData.(string))
+				logrus.Info("写入队列")
+				//go tools.GetMsg(true)
+			} else {
+				logrus.WithField("taskId", trainBConfig.TaskId).Error("训练失败")
+			}
+		}
+		return nil
+		// endregion
+	} else {
+		logrus.Error( errors.Wrap(err, "tools.PluginRun failed"))
+		return err
+	}
 }
 
 func StopTrain(taskId string) (err error) {
@@ -260,15 +314,22 @@ func cronFunc() {
 						//logrus.Debug(string(byteStatus))
 						switch strings.ReplaceAll(strings.ReplaceAll(string(byteStatus), "\n", ""), " ", "") {
 						case Waiting:
-							cmdStr := fmt.Sprintf("%s --name 'qtingTrain-%s' -v /etc/localtime:/etc/localtime:ro -v '%s':'%s' %s",
-								beego.AppConfig.DefaultString("dockerRunPrefix", "docker run --shm-size 32G --memory-swap -1 --gpus all --rm -d"),
-								trainConfig.TaskId, trainConfig.ProjectPath, trainConfig.Volume, trainConfig.Image)
-							cmd := exec.Command("bash", "-c", cmdStr)
-							if output, err := cmd.CombinedOutput(); err == nil {
-								updateStatus(fs, statusFile, Training, TrainingInt, trainConfig.TaskId, string(output))
+							if err = afero.WriteFile(fs, savePath + "config.yaml", msgBody, 0755); err == nil {
+								logrus.Info("写入config.yaml成功")
+								cmdStr := fmt.Sprintf("%s --name 'qtingTrain-%s' -v /etc/localtime:/etc/localtime:ro -v '%s':'%s' %s",
+									beego.AppConfig.DefaultString("dockerRunPrefix", "docker run --shm-size 32G --memory-swap -1 --gpus all --rm -d"),
+									trainConfig.TaskId, trainConfig.ProjectPath, trainConfig.Volume, trainConfig.Image)
+								cmd := exec.Command("bash", "-c", cmdStr)
+								if output, err := cmd.CombinedOutput(); err == nil {
+									updateStatus(fs, statusFile, Training, TrainingInt, trainConfig.TaskId, string(output))
+								} else {
+									logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "训练出错"+cmdStr)))
+									logrus.WithField("out", string(output)).Error(err.Error())
+									updateStatus(fs, statusFile, Failed, FailedInt, trainConfig.TaskId, "")
+								}
 							} else {
-								logrus.Error(fmt.Sprintf("%+v", errors.Wrap(err, "训练出错"+cmdStr)))
-								logrus.WithField("out", string(output)).Error(err.Error())
+								logrus.WithField("TrainErr", "写入config.yaml失败").Error(errors.Wrap(err, "写入config.yaml失败"))
+								updateStatus(fs, statusFile, Failed, FailedInt, trainConfig.TaskId, "")
 							}
 							break
 						case Training:
@@ -294,8 +355,30 @@ func cronFunc() {
 						case Done:
 							updateStatus(fs, statusFile, Done, DoneInt, trainConfig.TaskId, "")
 							// region 此处加载插件业务逻辑
+							taskIdTemp := trainConfig.TaskId
+							if strings.Contains(trainConfig.TaskId, "-") {
+								taskIdTemp = strings.Split(trainConfig.TaskId, "-")[0]
+							}
+							aiFramework, err := GetQtAiFrameworkById(trainConfig.AiFrameworkId); if err !=nil {logrus.Error(errors.Wrap(err, "done query QtAiFramework err"))}
+							aiFrameworkByte, err := json.Marshal(&aiFramework); if err !=nil { logrus.Error(errors.Wrap(err, "done Marshal QtAiFramework err"))}
+							project, err := GetQtProjectsById(trainConfig.ProjectId); if err !=nil {logrus.Error(errors.Wrap(err, "done query project err"))}
+							projectByte, err := json.Marshal(&project); if err !=nil {logrus.Error(errors.Wrap(err, "done Marshal project err"))}
+
+							trainRecord, err := GetQtTrainRecordByTaskId(trainConfig.TaskId); if err !=nil {logrus.Error(errors.Wrap(err, "done query QtTrainRecord err"))}
+							trainRecordByte, err := json.Marshal(&trainRecord); if err !=nil {logrus.Error(errors.Wrap(err, "done Marshal trainRecord err"))}
+
 							pluginFileName := trainConfig.ProviderType + beego.AppConfig.DefaultString("pluginSuffix", ".yn")
-							_, err = tools.PluginRun(pluginFileName, "Done", trainConfig.TaskId, trainConfig.ProjectName, trainConfig.ProviderType)
+							if qtModelJson, err := tools.PluginRun(pluginFileName, "Done", taskIdTemp, string(projectByte), string(aiFrameworkByte), string(trainRecordByte)); err == nil {
+								var qtModels QtModels
+								if err = json.Unmarshal([]byte(qtModelJson.(string)), &qtModels); err == nil {
+									_, err = AddQtModels(&qtModels)
+									if err != nil {
+										logrus.WithField("taskId", trainConfig.TaskId).Error(fmt.Sprintf("%+v", errors.Wrap(err, "新增模型失败")))
+									} else {
+										logrus.WithField("taskId", trainConfig.TaskId).Error(fmt.Sprintf("%+v", errors.Wrap(err, "新增模型成功")))
+									}
+								}
+							}
 							// endregion
 							break
 						case Failed:

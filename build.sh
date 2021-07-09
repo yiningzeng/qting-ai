@@ -30,6 +30,6 @@ while getopts "v:o:h" opt; do
 done
 rm qting-ai
 rm plugins/*.yn
-go build -buildmode=plugin -o plugins/QTing-tiny-3l-single.yn plugins/QTing-tiny-3l-single/main.go
-go build -buildmode=plugin -o plugins/QTing-tiny-3l-multilabel.yn plugins/QTing-tiny-3l-multilabel/main.go
-go build -ldflags  "-X \"qting-ai/version.BuildDate=$buildTime\" -X \"qting-ai/version.ID=$versionId\"" -o "$packageName"
+go build -buildmode=plugin -gcflags="all=-N -l" -o plugins/QTing-tiny-3l-single.yn plugins/QTing-tiny-3l-single/main.go plugins/QTing-tiny-3l-single/func.go
+go build -buildmode=plugin -gcflags="all=-N -l" -o plugins/QTing-tiny-3l-multilabel.yn plugins/QTing-tiny-3l-multilabel/main.go plugins/QTing-tiny-3l-multilabel/func.go
+go build -gcflags="all=-N -l" -ldflags  "-X \"qting-ai/version.BuildDate=$buildTime\" -X \"qting-ai/version.ID=$versionId\"" -o "$packageName"

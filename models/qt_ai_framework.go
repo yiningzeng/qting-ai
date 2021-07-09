@@ -11,15 +11,15 @@ import (
 )
 
 type QtAiFramework struct {
-	Id            int       `orm:"column(id);auto"`
-	FrameworkName string    `orm:"column(framework_name);size(30)" description:"ai框架名称"`
-	BaseImageUrl  string    `orm:"column(base_image_url);size(255)" description:"基础镜像地址"`
-	ImageVersion  string    `orm:"column(image_version);size(255)" description:"镜像版本"`
-	Volume        string    `orm:"column(volume);size(255)" description:"数据映射的镜像内部地址"`
-	Cfg           string    `orm:"column(cfg);size(255)" description:"对应的配置文件"`
-	Remarks       string    `orm:"column(remarks);size(100);null" description:"备注"`
-	ParsJson      string    `orm:"column(pars_json);null" description:"动态参数JSON"`
-	CreateTime    time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
+	Id            int       `json:"Id"  orm:"column(id);auto"`
+	FrameworkName string    `json:"FrameworkName" orm:"column(framework_name);size(30)" description:"ai框架名称"`
+	BaseImageUrl  string    `json:"BaseImageUrl" orm:"column(base_image_url);size(255)" description:"基础镜像地址"`
+	ImageVersion  string    `json:"ImageVersion" orm:"column(image_version);size(255)" description:"镜像版本"`
+	Volume        string    `json:"Volume" orm:"column(volume);size(255)" description:"数据映射的镜像内部地址"`
+	Cfg           string    `json:"Cfg" orm:"column(cfg);size(255)" description:"对应的配置文件"`
+	Remarks       string    `json:"Remarks" orm:"column(remarks);size(100);null" description:"备注"`
+	ParsJson      string    `json:"ParsJson" orm:"column(pars_json);null" description:"动态参数JSON"`
+	CreateTime    time.Time `json:"CreateTime" orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtAiFramework) TableName() string {

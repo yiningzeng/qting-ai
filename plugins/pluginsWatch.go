@@ -1,6 +1,7 @@
 package plugins
 
 import (
+	"encoding/json"
 	"fmt"
 	beego "github.com/beego/beego/v2/server/web"
 	"github.com/fsnotify/fsnotify"
@@ -16,9 +17,12 @@ var Watcher *fsnotify.Watcher
 func AddPluginInfo(fileName string) {
 	if path.Ext(fileName) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
 		if res, err := tools.PluginRun(fileName, "Version", fileName); err == nil {
-			qtPlugin := res.(models.QtPlugins)
-			qtPlugin.PluginName = fileName
-			_, _ = models.AddQtPlugins(&qtPlugin)
+			var qtPlugin models.QtPlugins
+			if err := json.Unmarshal([]byte(res.(string)), &qtPlugin); err == nil {
+				qtPlugin.PluginName = fileName
+				_, _ = models.AddQtPlugins(&qtPlugin)
+				logrus.WithField("pluginVersion", qtPlugin).Info("调用插件成功")
+			}
 		} else {
 			logrus.Info(err)
 		}

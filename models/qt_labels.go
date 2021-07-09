@@ -11,11 +11,11 @@ import (
 )
 
 type QtLabels struct {
-	Id         int         `orm:"column(id);auto"`
-	ProjectId  *QtProjects `orm:"column(project_id);rel(fk)"`
-	LabelName  string      `orm:"column(label_name);size(30);null" description:"标签名称"`
-	Remarks    string      `orm:"column(remarks);size(255);null"`
-	CreateTime time.Time   `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
+	Id         int         `json:"Id" orm:"column(id);auto"`
+	ProjectId  *QtProjects `json:"ProjectId" orm:"column(project_id);rel(fk)"`
+	LabelName  string      `json:"LabelName" orm:"column(label_name);size(30);null" description:"标签名称"`
+	Remarks    string      `json:"Remarks" orm:"column(remarks);size(255);null"`
+	CreateTime time.Time   `json:"CreateTime" orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtLabels) TableName() string {

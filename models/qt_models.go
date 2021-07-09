@@ -23,18 +23,10 @@ type QtModels struct {
 	ModelName     string         `orm:"column(model_name);size(100);null" description:"模型名称"`
 	ModelPath     string         `orm:"column(model_path);size(255);null" description:"模型的本地路径"`
 	ModelBasePath string         `orm:"column(model_base_path);size(255);null" description:"模型的保存目录"`
-	IsMultilabel int `orm:"column(is_multilabel);null" description:"该模型是否包含多标签
-该模型是否包含多标签
--1 表示未知
-0 表示单标签单模型
-1 表示多标签单模型"`
-	LabelStr string `orm:"column(label_str);null" description:"缺陷的标签，使用英文的,分离
-比如zhanxi,jinmian,wuran"`
+	IsMultilabel int `orm:"column(is_multilabel);null" description:"该模型是否包含多标签 -1 表示未知 0 表示单标签单模型 1 表示多标签单模型"`
+	LabelStr string `orm:"column(label_str);null" description:"缺陷的标签，使用英文的,分离 比如zhanxi,jinmian,wuran"`
 	SuggestScore string `orm:"column(suggest_score);null" description:"推荐置信度的json值"`
-	Status int `orm:"column(status);null" description:"模型状态
-0 表示未发布
-1 表示已发布
-2 表示已下线"`
+	Status int `orm:"column(status);null" description:"模型状态 0 表示未发布 1 表示已发布 2 表示已下线"`
 	PublishUrl  string    `orm:"column(publish_url);size(255);null" description:"模型的发布地址"`
 	PublishTime time.Time `orm:"column(publish_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 	CreateTime  time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`

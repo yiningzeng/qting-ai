@@ -11,24 +11,17 @@ import (
 )
 
 type QtTrainRecord struct {
-	Id          int         `orm:"column(id);auto"`
-	TaskId      string      `orm:"column(task_id);size(30);null" description:"任务标识"`
-	TaskName    string      `orm:"column(task_name);size(100);null" description:"训练任务名称"`
-	ContainerId string      `orm:"column(container_id);size(100);null" description:"训练的容器的id"`
-	ProjectId   *QtProjects `orm:"column(project_id);rel(fk)" description:"项目名"`
-	Status      int         `orm:"column(status);null" description:"0:准备完成
-1:等待训练
-2:正在训练
-3:暂停训练
-4:训练完成
--1:训练有误"`
-	AiFrameworkId *QtAiFramework `orm:"column(ai_framework_id);rel(fk)" description:"训练使用的框架ID"`
-	AssetsType    string         `orm:"column(assets_type);size(50);null" description:"训练的数据类型"`
-	IsJump        int            `orm:"column(is_jump);null" description:"是否插队
-0:正常
-1:插队"`
-	DrawUrl    string    `orm:"column(draw_url);size(255);null" description:"画图的网址"`
-	CreateTime time.Time `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
+	Id            int            `json:"Id" orm:"column(id);auto"`
+	TaskId        string         `json:"TaskId" orm:"column(task_id);size(30);null" description:"任务标识"`
+	TaskName      string         `json:"TaskName" orm:"column(task_name);size(100);null" description:"训练任务名称"`
+	ContainerId   string         `json:"ContainerId" orm:"column(container_id);size(100);null" description:"训练的容器的id"`
+	ProjectId     *QtProjects    `json:"ProjectId" orm:"column(project_id);rel(fk)" description:"项目名"`
+	Status        int            `json:"Status" orm:"column(status);null" description:"0:准备完成 1:等待训练 2:正在训练 3:暂停训练 4:训练完成 -1:训练有误"`
+	AiFrameworkId *QtAiFramework `json:"AiFrameworkId" orm:"column(ai_framework_id);rel(fk)" description:"训练使用的框架ID"`
+	AssetsType    string         `json:"AssetsType" orm:"column(assets_type);size(50);null" description:"训练的数据类型"`
+	IsJump        int            `json:"IsJump" orm:"column(is_jump);null" description:"是否插队 0:正常 1:插队"`
+	DrawUrl       string         `json:"DrawUrl" orm:"column(draw_url);size(255);null" description:"画图的网址"`
+	CreateTime    time.Time      `json:"CreateTime" orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtTrainRecord) TableName() string {

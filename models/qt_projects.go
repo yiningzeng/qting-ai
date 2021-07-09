@@ -10,14 +10,14 @@ import (
 )
 
 type QtProjects struct {
-	Id          int              `orm:"column(id);auto"`
-	ProjectName string           `orm:"column(project_name);size(100)" description:"项目名称"`
-	AssetsPath  string           `orm:"column(assets_path);size(255);null" description:"项目的目录默认所有的项目目录都存在/qtingvisionfolder/Projects/"`
-	ImageWidth  int              `orm:"column(image_width);null" description:"默认指的是发布时的图像宽"`
-	ImageHeight int              `orm:"column(image_height);null" description:"默认指的是发布时的图像高"`
-	Remarks     string           `orm:"column(remarks);size(100);null" description:"备注"`
-	Labels      []*QtLabels      `orm:"reverse(many)"` // 设置一对多的反向关系
-	CreateTime  time.Time        `orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
+	Id          int              `json:"Id" orm:"column(id);auto"`
+	ProjectName string           `json:"ProjectName" orm:"column(project_name);size(100)" description:"项目名称"`
+	AssetsPath  string           `json:"AssetsPath" orm:"column(assets_path);size(255);null" description:"项目的目录默认所有的项目目录都存在/qtingvisionfolder/Projects/"`
+	ImageWidth  int              `json:"ImageWidth" orm:"column(image_width);null" description:"默认指的是发布时的图像宽"`
+	ImageHeight int              `json:"ImageHeight" orm:"column(image_height);null" description:"默认指的是发布时的图像高"`
+	Remarks     string           `json:"Remarks" orm:"column(remarks);size(100);null" description:"备注"`
+	Labels      []*QtLabels      `json:"Labels" orm:"reverse(many)"` // 设置一对多的反向关系
+	CreateTime  time.Time        `json:"CreateTime" orm:"column(create_time);type(datetime);null" time_format:"sql_datetime" time_location:"shanghai" time_utc:"false"`
 }
 
 func (t *QtProjects) TableName() string {
