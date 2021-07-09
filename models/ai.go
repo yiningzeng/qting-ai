@@ -216,7 +216,12 @@ func updateStatus(fs afero.Fs, statusFile string, status string, statusCode int,
 	//_ = afero.WriteFile(fs, "/aaa.txt", []byte(Training), 0755)
 	if err := afero.WriteFile(fs, statusFile, []byte(status), 0755); err == nil {
 		if data, err := GetQtTrainRecordByTaskId(taskId); err == nil {
-			data.Status = statusCode
+			if statusCode == UnDo {
+				data.Status = StoppedInt
+			} else {
+				data.Status = statusCode
+			}
+
 			data.ContainerId = dockerId
 			if err = UpdateQtTrainRecordById(data); err == nil {
 				if statusCode == StoppedInt || statusCode == DoneInt || statusCode == FailedInt || statusCode == UnknownInt {
