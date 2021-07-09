@@ -11,8 +11,8 @@ import (
 	"strings"
 )
 
-func getLabelStr(taskId string, labelName string, modelBasePath string) (res string) {
-	labelFileName := path.Join(modelBasePath, fmt.Sprintf("%s-%s.names", taskId, labelName))
+func getLabelStr(taskId string, modelBasePath string) (res string) {
+	labelFileName := path.Join(modelBasePath, taskId + ".names")
 	if by, err := afero.ReadFile(afero.NewOsFs(), labelFileName); err == nil {
 		labelStr := "," + strings.ReplaceAll(string(by), "\n", ",") // 此处首位加了个,为了到时候筛选的时候过滤掉个别标签中包含搜索的关键词，到时候搜索直接,关键词,
 		if !strings.HasSuffix(labelStr, ",") { // 需要确保以,结尾， 因为有些情况不存在最后一个空行
@@ -22,9 +22,9 @@ func getLabelStr(taskId string, labelName string, modelBasePath string) (res str
 	}
 	return ""
 }
-func getSuggest(taskId string, labelName string, modelBasePath string) (res string) {
+func getSuggest(taskId string, modelBasePath string) (res string) {
 	//读取labels.names 如果不存在就直接不执行
-	suggestFileName := path.Join(modelBasePath, fmt.Sprintf("%s-%s.suggest", taskId, labelName))
+	suggestFileName :=  path.Join(modelBasePath, taskId + ".suggest")
 	if by, err := afero.ReadFile(afero.NewOsFs(), suggestFileName); err == nil {
 		//temp := strings.Trim(string(by))
 		jsonStr := strings.ReplaceAll(string(by), "\n", "")

@@ -57,7 +57,7 @@ args[0] taskId
 args[1] 项目结构体Json字符串
 args[2] 框架结构体Json字符串
 args[3] 训练任务记录结构体Json字符串
-ret 返回qtModels的Json数据
+ret 返回[]qtModels数组的Json数据
 */
 func Done(args ...interface{}) (ret interface{}, err error) {
 	logrus.WithFields(logrus.Fields{
@@ -90,7 +90,7 @@ func Done(args ...interface{}) (ret interface{}, err error) {
 		tempName = tempName + "(" + qtTrainRecord.TaskName + ")"
 	}
 	// 插入模型数据
-	qtModels := &plugins.QtModels{
+	qtModel := &plugins.QtModels{
 		TaskId:        taskId,
 		ProjectId:     &qtProject,
 		AiFrameworkId: &qtAiFramework,
@@ -103,7 +103,9 @@ func Done(args ...interface{}) (ret interface{}, err error) {
 		Status:        0,
 		CreateTime:    time.Now(),
 	}
-	qtModelsByte, err := json.Marshal(&qtModels)
+	var models []plugins.QtModels
+	models = append(models, *qtModel)
+	qtModelsByte, err := json.Marshal(&models)
 	//_, err = models.AddQtModels(qtModels)
 	if err != nil {
 		logrus.WithField("taskId", taskId).Error(fmt.Sprintf("%+v", errors.Wrap(err, "模型转换json失败")))

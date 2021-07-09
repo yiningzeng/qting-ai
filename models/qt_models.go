@@ -106,6 +106,9 @@ func OnlineModel(m *OnlineModelPar) (err error) {
 			}
 		} else {
 			// 这里是最新的打包方式,以后的框架都是这种打包文件夹的形式!!!!!!!!
+			if _, err = tools.PluginRun(qTModel.AiFrameworkId.FrameworkName, "Compress", []string{qTModel.ModelPath}, zipFile); err != nil {
+				return err
+			}
 		}
 
 		// endregion

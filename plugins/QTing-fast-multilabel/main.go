@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	pluginName    = "QTing-tiny-3l-single"
+	pluginName    = "QTing-fast-multilabel"
 	pluginVersion = 20
 )
 
@@ -74,35 +74,38 @@ func Done(args ...interface{}) (ret interface{}, err error) {
 		"backup",
 		qtAiFramework.FrameworkName)
 
-	var models []plugins.QtModels
+	modelPath := path.Join(modelBasePath, taskId)
+	logrus.WithFields(logrus.Fields{
+		"taskId": taskId,
+		"projectName": qtProject.ProjectName,
+		"aiFrameworkName": qtAiFramework.FrameworkName,
+		"modelBasePath": modelBasePath,
+		"modelPath": modelPath,
+	}).Debug("QTing-tiny-3l-multilabel参数")
 
-	for _, v := range qtProject.Labels {
-		modelLabelBasePath := path.Join(modelBasePath, v.LabelName)
-		modelPath := path.Join(modelLabelBasePath, fmt.Sprintf("%s-%s.weights", taskId, v.LabelName))
-		if _, err := os.Stat(modelPath); err == nil {
-			suggest := getSuggest(taskId, v.LabelName, modelLabelBasePath)
-			labelStr := getLabelStr(taskId, v.LabelName, modelLabelBasePath)
-			var tempName = ""
-			// 先查询是否存在相关的训练记录
-			if errQtTrainRecord == nil {
-				tempName = "(" + qtTrainRecord.TaskName + ")"
-			}
-			qtModel := &plugins.QtModels{
-				TaskId:        taskId,
-				ProjectId:     &qtProject,
-				AiFrameworkId: &qtAiFramework,
-				ModelName:     time.Now().Format("2006-01-02 03:04") + tempName,
-				ModelPath:     modelPath,
-				ModelBasePath: modelLabelBasePath,
-				SuggestScore:  suggest,
-				LabelStr:      labelStr,
-				IsMultilabel:  0,
-				Status:        0,
-				CreateTime:    time.Now(),
-			}
-			models = append(models, *qtModel)
-		}
+	suggest := getSuggest(taskId, modelBasePath)
+	labelStr := getLabelStr(taskId, modelBasePath)
+	var tempName = ""
+	// 先查询是否存在相关的训练记录
+	if errQtTrainRecord == nil {
+		tempName = tempName + "(" + qtTrainRecord.TaskName + ")"
 	}
+	// 插入模型数据
+	qtModel := &plugins.QtModels{
+		TaskId:        taskId,
+		ProjectId:     &qtProject,
+		AiFrameworkId: &qtAiFramework,
+		ModelName:     time.Now().Format("2006-01-02 03:04") + tempName,
+		ModelPath:     modelPath,
+		ModelBasePath: modelBasePath,
+		SuggestScore:  suggest,
+		LabelStr:      labelStr,
+		IsMultilabel:  1,
+		Status:        0,
+		CreateTime:    time.Now(),
+	}
+	var models []plugins.QtModels
+	models = append(models, *qtModel)
 	qtModelsByte, err := json.Marshal(&models)
 	//_, err = models.AddQtModels(qtModels)
 	if err != nil {
@@ -110,4 +113,23 @@ func Done(args ...interface{}) (ret interface{}, err error) {
 		return nil, err
 	}
 	return string(qtModelsByte), nil
+}
+
+/*
+打包发布的方法
+args[0] 需要打包的文件字符串数组可以是文件夹
+args[1] 需要输出的压缩文件路径
+*/
+func Compress(args ...interface{}) (ret interface{}, err error) {
+	filesStr := args[0].([]string)
+	dest := args[1].(string)
+	var filesOs []*os.File
+	for _, v := range filesStr {
+		f, _ := os.Open(v)
+		filesOs = append(filesOs, f)
+	}
+	for _, v := range filesOs {
+		v.Close()
+	}
+	return nil, plugins.Compress(filesOs, dest)
 }

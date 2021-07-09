@@ -222,7 +222,6 @@ func StartTrain(trainBConfig *TrainBaseConfig, data string)(err error) {
 				Message:  finalData.(string),
 			})
 		}
-
 		savePath := beego.AppConfig.DefaultString("ProjectPath", "/qtingvisionfolder/Projects/") + project.ProjectName + "/training_data/"
 		statusFile := fmt.Sprintf("%s/train_status_%s.log", savePath, trainBConfig.TaskId)
 
@@ -353,7 +352,6 @@ func cronFunc() {
 							//updateStatus(fs, statusFile, Training, TrainingInt, &trainConfig)
 							break
 						case Done:
-							updateStatus(fs, statusFile, Done, DoneInt, trainConfig.TaskId, "")
 							// region 此处加载插件业务逻辑
 							taskIdTemp := trainConfig.TaskId
 							if strings.Contains(trainConfig.TaskId, "-") {
@@ -368,17 +366,22 @@ func cronFunc() {
 							trainRecordByte, err := json.Marshal(&trainRecord); if err !=nil {logrus.Error(errors.Wrap(err, "done Marshal trainRecord err"))}
 
 							pluginFileName := trainConfig.ProviderType + beego.AppConfig.DefaultString("pluginSuffix", ".yn")
-							if qtModelJson, err := tools.PluginRun(pluginFileName, "Done", taskIdTemp, string(projectByte), string(aiFrameworkByte), string(trainRecordByte)); err == nil {
-								var qtModels QtModels
-								if err = json.Unmarshal([]byte(qtModelJson.(string)), &qtModels); err == nil {
-									_, err = AddQtModels(&qtModels)
-									if err != nil {
-										logrus.WithField("taskId", trainConfig.TaskId).Error(fmt.Sprintf("%+v", errors.Wrap(err, "新增模型失败")))
-									} else {
-										logrus.WithField("taskId", trainConfig.TaskId).Error(fmt.Sprintf("%+v", errors.Wrap(err, "新增模型成功")))
+							if qtModelsJson, err := tools.PluginRun(pluginFileName, "Done", taskIdTemp, string(projectByte), string(aiFrameworkByte), string(trainRecordByte)); err == nil {
+								var qtModels []QtModels
+								if err = json.Unmarshal([]byte(qtModelsJson.(string)), &qtModels); err == nil {
+									for _, v := range qtModels {
+										_, err = AddQtModels(&v)
+										if err != nil {
+											logrus.WithFields(logrus.Fields{"taskId": trainConfig.TaskId, "modelName": v.ModelName}).Error(fmt.Sprintf("%+v", errors.Wrap(err, "新增模型失败")))
+										} else {
+											logrus.WithFields(logrus.Fields{"taskId": trainConfig.TaskId, "modelName": v.ModelName}).Error(fmt.Sprintf("%+v", errors.Wrap(err, "新增模型成功")))
+										}
 									}
 								}
+							} else {
+								logrus.Error(errors.Wrap(err, "训练完成处理失败"))
 							}
+							updateStatus(fs, statusFile, Done, DoneInt, trainConfig.TaskId, "")
 							// endregion
 							break
 						case Failed:

@@ -10,17 +10,16 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"qting-ai/models"
 	"qting-ai/tools"
 )
 var Watcher *fsnotify.Watcher
 func AddPluginInfo(fileName string) {
 	if path.Ext(fileName) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
 		if res, err := tools.PluginRun(fileName, "Version", fileName); err == nil {
-			var qtPlugin models.QtPlugins
+			var qtPlugin QtPlugins
 			if err := json.Unmarshal([]byte(res.(string)), &qtPlugin); err == nil {
 				qtPlugin.PluginName = fileName
-				_, _ = models.AddQtPlugins(&qtPlugin)
+				//_, _ = models.AddQtPlugins(&qtPlugin)
 				logrus.WithField("pluginVersion", qtPlugin).Info("调用插件成功")
 			}
 		} else {
@@ -60,7 +59,7 @@ func StartWatcher() {
 					f := path.Base(ev.Name)
 					logrus.WithField("filename", f).Info("remove")
 					if path.Ext(f) == beego.AppConfig.DefaultString("pluginSuffix", ".yn") {
-						_ = models.DeleteQtPluginsByFileName(f)
+						//_ = models.DeleteQtPluginsByFileName(f)
 					}
 				}
 			case err, ok := <-watcher.Errors:
